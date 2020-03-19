@@ -1,0 +1,102 @@
+/* BOARD STRUCTURE - (Do not edit) */
+
+// TODO: Move relevant values into variables
+
+div.chess-board {
+    position: relative;
+    width: 75vmin;
+    height: 75vmin;
+    max-width: 1280px;
+    max-height: 1280px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+div.board-row {
+    display: inline-flex;
+    justify-content: space-evenly;
+    flex-grow: 1;
+}
+
+div.board-square {
+    flex-grow: 1;
+    position: relative;
+}
+
+div.decorated::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+}
+
+div.occupied::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    background-size: 100%;
+}
+
+div.shade-overlay {
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+div.modal-chooser {
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    left: 50%;
+    width: 62.5%;
+    height: 37.5%;
+    transform: translate(-50%, -50%);
+}
+
+div.chooser-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+div.flex-even {
+    flex: 1;
+    height: fit-content;
+    user-select: none;
+}
+
+div.distribute {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+div.choice {
+    height: 100%;
+    width: 20%;
+    position: relative;
+}
+
+div.choice::after {
+    content: "";
+    position: absolute;
+    z-index: 6;
+    width: 100%;
+    height: 100%;
+    background-size: 100%;
+}
+
+.centered-padding {
+    text-align: center;
+    height: 100%;
+    margin: 0;
+    padding: 1em;
+    box-sizing: border-box;
+}

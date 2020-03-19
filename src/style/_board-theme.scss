@@ -1,0 +1,138 @@
+/* BOARD THEME */
+
+/* Squares */
+
+div.board-row:nth-of-type(even) div.board-square:nth-child(odd) {
+    background-color: #9a816f;
+}
+
+div.board-row:nth-of-type(odd) div.board-square:nth-child(even) {
+    background-color: #9a816f;
+}
+
+div.board-row:nth-of-type(even) div.board-square:nth-child(even) {
+    background-color: #e6d6ca;
+}
+
+div.board-row:nth-of-type(odd) div.board-square:nth-child(odd) {
+    background-color: #e6d6ca;
+}
+
+/* Decorations */
+
+div.board-square-active::before {
+    background-color: #fff5a2;
+}
+
+div.board-square-open::before {
+    background-color: #0befa7;
+}
+
+div.board-square-takeable::before {
+    background-color: #ff7b71;
+}
+
+div.board-square-recent::before {
+    background-color: #fbe5ff;
+}
+
+/* Pieces */
+
+div.black-king::after {
+    background-image: url("pieces/BlackKing.png");
+}
+
+div.black-queen::after {
+    background-image: url("pieces/BlackQueen.png");
+}
+
+div.black-pawn::after {
+    background-image: url("pieces/BlackPawn.png");
+}
+
+div.black-rook::after {
+    background-image: url("pieces/BlackRook.png");
+}
+
+div.black-bishop::after {
+    background-image: url("pieces/BlackBishop.png");
+}
+
+div.black-knight::after {
+    background-image: url("pieces/BlackKnight.png");
+}
+
+div.white-king::after {
+    background-image: url("pieces/WhiteKing.png");
+}
+
+div.white-queen::after {
+    background-image: url("pieces/WhiteQueen.png");
+}
+
+div.white-pawn::after {
+    background-image: url("pieces/WhitePawn.png");
+}
+
+div.white-rook::after {
+    background-image: url("pieces/WhiteRook.png");
+}
+
+div.white-bishop::after {
+    background-image: url("pieces/WhiteBishop.png");
+}
+
+div.white-knight::after {
+    background-image: url("pieces/WhiteKnight.png");
+}
+
+/* Modal Chooser */
+
+div.shade-overlay {
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+div.modal-chooser {
+    background-color: white;
+}
+
+h2.chooser-header {
+    font-size: 3vmin;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+p.chooser-description {
+    font-size: 2vmin;
+    color: #222;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Animations */
+
+.fade-in {
+    animation: fade-in 0.3s;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+.fade-out {
+    animation: fade-out 0.3s;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1
+    }
+
+    to {
+        opacity: 0
+    }
+}
