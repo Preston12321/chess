@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-    entry: './src/script/index.js',
+    entry: './src/index.js',
     module: {
         rules: [
             {
@@ -52,7 +52,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             title: 'Chess',
-            template: './src/index.html'
+            template: './src/view/index.html'
         }),
         new MiniCssExtractPlugin({
             filename: 'style/style.css'
