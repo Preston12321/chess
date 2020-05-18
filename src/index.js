@@ -16,3 +16,7 @@ import './view/style/style.scss';
 import { setupGameWhenReady } from './controller/util';
 
 setupGameWhenReady();
+
+// TODO: Add README and LICENSE files
+// TODO: Add repo URL to package.json
+// TODO: Add unit tests and CI pipeline
