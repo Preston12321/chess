@@ -78,4 +78,42 @@ export class BoardView extends Object {
     bindToElement(element) {
         this.element = $(element).replaceWith(this.element);
     }
+
+    /**
+     * Rotate all pieces and decorations 90 degrees clockwise a
+     * specified amount of turns. NOTE: You must call `update()`
+     * after calling this method or the view will not change
+     * @param {Number} turns
+     */
+    turnClockwise(turns) {
+        if ((turns % 4) < 1) return;
+
+        let squares = [];
+        this.squares.forEach(row => {
+            row.forEach(square => {
+                let sq = square.square;
+                squares[sq.x + sq.y * 8] = sq;
+            });
+        });
+
+        this.squares.forEach(row => {
+            row.forEach(square => {
+                let current = square.square;
+                let swap = squares[7 - current.y + current.x * 8];
+                square.square = swap;
+            });
+        });
+
+        this.turnClockwise(turns - 1);
+    }
+
+    /**
+     * This is a convenience function for `turnClockwise(2)`. Unlike
+     * `turnClockwise()`, the `update()` method is called for you, so
+     * you do not need to call it after invoking this method
+     */
+    flip() {
+        this.turnClockwise(2);
+        this.update();
+    }
 }

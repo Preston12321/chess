@@ -46,40 +46,4 @@ export class Board extends Object {
             });
         });
     }
-
-    // TODO: Consider moving turnClockwise and flip into BoardView class
-    // (This would mean the Board never actually flips, just the view arrangment)
-
-    /**
-     * Rotate all pieces and decorations 90 degrees
-     * clockwise a specified amount of turns
-     * @param {Number} turns
-     */
-    turnClockwise(turns) {
-        if ((turns % 4) < 1) return;
-
-        var squares = [];
-        this.iterate(sq => {
-            squares[sq.x + sq.y * 8] = {
-                "decoration": sq.decoration(),
-                "resident": sq.resident
-            };
-        });
-
-        this.iterate(sq => {
-            let old = squares[7 - sq.y + sq.x * 8];
-            sq.decoration(old.decoration);
-            sq.resident(old.resident);
-        });
-
-        this.turnClockwise(turns - 1);
-    }
-
-    /**
-     * This is a convenience function for
-     * [turnClockwise(2)]{@linkcode Board#turnClockwise}
-     */
-    flip() {
-        this.turnClockwise(2);
-    }
 }
