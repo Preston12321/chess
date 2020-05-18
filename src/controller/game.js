@@ -9,17 +9,23 @@ import { Square } from '../model/square';
 export class GameController extends Object {
     constructor() {
         super();
-        this.chessBoard = new Board();
-        this.view = new BoardView(this.chessBoard);
+
+        this.board = new Board();
+        this.view = new BoardView(this.board);
+
         this.activeSquare = null;
         this.turnTeam = constants.piecePrefixWhite;
         this.moveLocked = false;
-        this.kingLocation = { "white": null, "black": null };
-        this.recentLocation = { "white": null, "black": null };
-        this.canCastle = { "white": true, "black": true };
         this.enPassant = null;
 
-        util.setupChess(this.chessBoard, "white");
+        // TODO: Track the individual pieces instead of using kingLocation
+        this.kingLocation = { "white": null, "black": null };
+        this.recentLocation = { "white": null, "black": null };
+
+        // TODO: Move canCastle into king-specific Piece class?
+        this.canCastle = { "white": true, "black": true };
+
+        util.setupChess(this.board, "white");
         this.view.update();
 
         this.view.onSquareClick(square => this.squareClick(square));
@@ -30,99 +36,104 @@ export class GameController extends Object {
      * @param {Square} square
      */
     squareClick(square) {
+        console.log(square);
 
         // NOTE: Changing parameter `event` to `square`
 
-        //     if (this.moveLocked) return;
+        if (this.moveLocked) return;
 
         //     var square = this.chessBoard.square(event.target);
-        //     var squareTeam = square.team();
+        //     var squareTeam = square.resident.team();
 
-        //     if (!(this.kingLocation[constants.piecePrefixWhite]
-        //         && this.kingLocation[constants.piecePrefixBlack])) {
-        //         this.chessBoard.iterate(function (sq) {
-        //             if (sq.piece() == constants.pieceSuffixKing) {
-        //                 this.kingLocation[sq.team()] = sq;
-        //             }
-        //         });
-        //     }
+        // Find both kings and note their location if not already noted
+        if (!(this.kingLocation[constants.piecePrefixWhite]
+            && this.kingLocation[constants.piecePrefixBlack])) {
+            // Search through board
+            this.board.iterate((sq) => {
+                let piece = sq.resident;
+                if (piece && piece.type == constants.pieceSuffixKing) {
+                    this.kingLocation[piece.team] = sq;
+                }
+            });
+        }
 
-        //     var shouldWipe = false;
+        let shouldWipe = false;
 
-        //     if (this.activeSquare) {
-        //         if (square.element === this.activeSquare.element) {
-        //             this.activeSquare = null;
-        //             util.wipeDecorations(this.chessBoard);
-        //             return;
-        //         }
-        //         else {
-        //             shouldWipe = true;
-        //         }
+        if (this.activeSquare) {
+            // TODO: Change check to a simple `square.active`?
+            if (square === this.activeSquare) {
+                this.activeSquare = null;
+                util.wipeDecorations(this.board);
+                return;
+            }
+            else {
+                shouldWipe = true;
+            }
 
-        //         var dec = square.decoration();
-        //         if (dec == constants.decoratedOpen || dec == constants.decoratedTakeable) {
-        //             square.resident(this.activeSquare.resident());
-        //             this.recentLocation[this.turnTeam] = square;
-        //             square.decoration(constants.decoratedRecent);
-        //             util.wipeDecorations(this.chessBoard, square);
-        //             var piece = this.activeSquare.piece();
-        //             this.enPassant = null;
-        //             if (piece == constants.pieceSuffixPawn) {
-        //                 if (square.y() == 3) this.enPassant = 7 - square.x();
-        //                 if (this.activeSquare.y() == 4) {
-        //                     this.chessBoard.square(square.x(), square.y() - 1).resident("");
-        //                 }
-        //             }
-        //             if (piece == constants.pieceSuffixRook)
-        //                 this.canCastle[this.activeSquare.team()] = false;
-        //             if (piece == constants.pieceSuffixKing) {
-        //                 if (this.canCastle[this.activeSquare.team()]) {
-        //                     this.canCastle[this.activeSquare.team()] = false;
-        //                     var squareX = square.x();
-        //                     var x1 = null;
-        //                     var x2 = null;
-        //                     if (squareX == 2) {
-        //                         x1 = 0;
-        //                         x2 = 3;
-        //                     }
-        //                     if (squareX == 1) {
-        //                         x1 = 0;
-        //                         x2 = 2;
-        //                     }
-        //                     if (squareX == 6) {
-        //                         x1 = 7;
-        //                         x2 = 5;
-        //                     }
-        //                     if (squareX == 5) {
-        //                         x1 = 7;
-        //                         x2 = 4;
-        //                     }
-        //                     if (x1 && x2) {
-        //                         var rook = this.chessBoard.square(x1, 0);
-        //                         this.chessBoard.square(x2, 0).resident(rook.resident());
-        //                         rook.resident("");
-        //                     }
-        //                 }
-        //             }
-        //             this.activeSquare.resident("");
-        //             this.activeSquare = null;
-        //             this.moveLocked = true;
-        //             if (isCheckmate()) alert(this.turnTeam + " won!");
-        //             else if (isStalemate()) alert("Draw by stalemate!");
-        //             this.kingLocation[constants.piecePrefixWhite] = null;
-        //             this.kingLocation[constants.piecePrefixBlack] = null;
-        //             setTimeout(function () {
-        //                 util.wipeDecorations(this.chessBoard);
-        //                 this.chessBoard.flip();
-        //                 this.moveLocked = false;
-        //                 this.turnTeam = (this.turnTeam == constants.piecePrefixWhite)
-        //                     ? constants.piecePrefixBlack : constants.piecePrefixWhite;
-        //                 if (this.recentLocation[this.turnTeam])
-        //                     this.recentLocation[this.turnTeam].decoration(constants.decoratedRecent);
-        //             }, 1000);
-        //             return;
-        //         }
-        //     }
+            var dec = square.decoration();
+            if (dec == constants.decoratedOpen || dec == constants.decoratedTakeable) {
+                square.resident(this.activeSquare.resident());
+                this.recentLocation[this.turnTeam] = square;
+                square.decoration(constants.decoratedRecent);
+                util.wipeDecorations(this.board, square);
+                var piece = this.activeSquare.piece();
+                this.enPassant = null;
+                if (piece == constants.pieceSuffixPawn) {
+                    if (square.y() == 3) this.enPassant = 7 - square.x();
+                    if (this.activeSquare.y() == 4) {
+                        this.board.square(square.x(), square.y() - 1).resident("");
+                    }
+                }
+                if (piece == constants.pieceSuffixRook)
+                    this.canCastle[this.activeSquare.team()] = false;
+                if (piece == constants.pieceSuffixKing) {
+                    if (this.canCastle[this.activeSquare.team()]) {
+                        this.canCastle[this.activeSquare.team()] = false;
+                        var squareX = square.x();
+                        var x1 = null;
+                        var x2 = null;
+                        if (squareX == 2) {
+                            x1 = 0;
+                            x2 = 3;
+                        }
+                        if (squareX == 1) {
+                            x1 = 0;
+                            x2 = 2;
+                        }
+                        if (squareX == 6) {
+                            x1 = 7;
+                            x2 = 5;
+                        }
+                        if (squareX == 5) {
+                            x1 = 7;
+                            x2 = 4;
+                        }
+                        if (x1 && x2) {
+                            var rook = this.board.square(x1, 0);
+                            this.board.square(x2, 0).resident(rook.resident());
+                            rook.resident("");
+                        }
+                    }
+                }
+                this.activeSquare.resident("");
+                this.activeSquare = null;
+                this.moveLocked = true;
+                if (isCheckmate()) alert(this.turnTeam + " won!");
+                else if (isStalemate()) alert("Draw by stalemate!");
+                this.kingLocation[constants.piecePrefixWhite] = null;
+                this.kingLocation[constants.piecePrefixBlack] = null;
+                setTimeout(function () {
+                    util.wipeDecorations(this.chessBoard);
+                    this.chessBoard.flip();
+                    this.moveLocked = false;
+                    this.turnTeam = (this.turnTeam == constants.piecePrefixWhite)
+                        ? constants.piecePrefixBlack : constants.piecePrefixWhite;
+                    if (this.recentLocation[this.turnTeam])
+                        this.recentLocation[this.turnTeam].decoration(constants.decoratedRecent);
+                }, 1000);
+                return;
+            }
+        }
 
         //     if (square.occupied() && squareTeam == this.turnTeam) {
 
