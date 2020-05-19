@@ -126,7 +126,7 @@ export class GameController extends Object {
                         }
 
                         if (x1 && x2) {
-                            var rook = this.board.square(x1, 0);
+                            let rook = this.board.square(x1, 0);
                             this.board.square(x2, 0).resident = rook.resident;
                             rook.resident = null;
                         }
@@ -137,13 +137,16 @@ export class GameController extends Object {
                 square.resident = this.activeSquare.resident;
                 this.activeSquare = null;
 
+                this.view.update();
+
                 this.moveLocked = true;
                 if (this.isCheckmate()) {
                     alert(this.turnTeam + " won!");
                 }
-                else if (isStalemate()) {
+                else if (this.isStalemate()) {
                     alert("Draw by stalemate!");
                 }
+
                 this.kingLocation[constants.pieceTeams.white] = null;
                 this.kingLocation[constants.pieceTeams.black] = null;
 
@@ -151,11 +154,14 @@ export class GameController extends Object {
                 setTimeout(() => {
                     self.board.flip();
                     this.clearStatuses();
+
                     self.moveLocked = false;
                     self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
                         ? constants.pieceTeams.black : constants.pieceTeams.white;
-                    if (this.recentLocation[self.turnTeam])
+
+                    if (this.recentLocation[self.turnTeam]) {
                         this.recentLocation[self.turnTeam].recent = true;
+                    }
                 }, 1000);
                 return;
             }
@@ -176,16 +182,13 @@ export class GameController extends Object {
         square.active = true;
 
         let moves = this.availableMoves(square.resident);
-        // let m = square.resident.
 
         if (!(moves && moves.length != 0)) return;
 
-        for (var n = 0; n < moves.length; n++) {
-            let sq = moves[n];
-
+        moves.forEach(sq => {
             if (sq.occupied) {
                 sq.takeable = true;
-                continue;
+                return;
             }
 
             let check = this.board.square(sq.x, sq.y - 1);
@@ -194,14 +197,16 @@ export class GameController extends Object {
                 + "-" + constants.pieceTypes.pawn;
 
             if (sq.x == this.enPassant && sq.y == 5
-                && square.piece() == constants.pieceTypes.pawn
-                && check.resident == enemyPawn) {
+                && square.resident.type == constants.pieceTypes.pawn
+                && check.resident.name == enemyPawn) {
                 sq.takeable = true;
             }
             else {
                 sq.open = true;
             }
-        }
+        });
+
+        this.view.update();
     }
 
     /**
@@ -307,112 +312,153 @@ export class GameController extends Object {
         return result;
     }
 
-    // isCheckmate() {
+    /**
+     * @returns Whether the current player has achieved checkmate against the other
+     */
+    isCheckmate() {
+        let enemyTeam = (this.turnTeam == constants.pieceTeams.white)
+            ? constants.pieceTeams.black
+            : constants.pieceTeams.white;
 
-    //     var enemyTeam = (this.turnTeam == constants.pieceTeams.white)
-    //         ? constants.pieceTeams.black
-    //         : constants.pieceTeams.white;
+        let kingThreats = this.dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
+        if (kingThreats == null) return false;
 
-    //     var kingThreats = dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
-    //     if (kingThreats == null) return false;
+        return this.isStalemate();
+    }
 
-    //     return isStalemate();
-    // }
+    /**
+     * @returns {boolean} Whether the game has reached a state of draw by stalemate
+     */
+    isStalemate() {
+        let enemyTeam = (this.turnTeam == constants.pieceTeams.white)
+            ? constants.pieceTeams.black
+            : constants.pieceTeams.white;
 
-    // isStalemate() {
-    //     var enemyTeam = (this.turnTeam == constants.pieceTeams.white)
-    //         ? constants.pieceTeams.black
-    //         : constants.pieceTeams.white;
+        let result = true;
+        this.board.iterate(sq => {
+            let moves = (sq.occupied && sq.resident.team == enemyTeam) ? this.availableMoves(sq.resident) : null;
+            if (moves) result = false;
+            return;
+        });
 
-    //     var result = true;
-    //     this.board.iterate(function (sq) {
-    //         var moves = (sq.team() == enemyTeam) ? this.availableMoves(sq.resident) : null;
-    //         if (moves) result = false;
-    //         return;
-    //     });
+        return result;
+    }
 
-    //     return result;
-    // }
+    /**
+     * Return a list of squares with pieces that would threaten
+     * the king if the given piece moved to the given square
+     * @param {Square} origin
+     * @param {Square} test
+     */
+    endangersKing(origin, test) {
+        let team = origin.resident.team;
+        return dangerousPieces(this.kingLocation[team], team, origin, test);
+    }
 
-    // // Returns all squares with pieces that would threaten
-    // // the king if the given piece moved to the given square
-    // endangersKing(origin, test) {
-    //     var team = origin.team();
-    //     return dangerousPieces(this.kingLocation[team], team, origin, test);
-    // }
+    /**
+     * Return a list of squares with pieces that threaten the given square
+     * @param {Square} square The square to test
+     * @param {String} team Which team to treat as the current player
+     * @param {Square} [ignore] An optional square to ignore
+     * @param {Square} [test] An optional square that can be specified to consider
+     *      what would happen if a friendly piece were on that square
+     * @returns {Array<Square>}
+     */
+    dangerousPieces(square, team, ignore, test) {
+        let result = [];
+        // Create a unit square
+        for (let j = -1; j <= 1; j++) {
+            for (let k = -1; k <= 1; k++) {
+                if (j == 0 && k == 0) continue;
+                // Check for distant enemy pieces, and pawns
+                for (let i = 1; i <= 7; i++) {
+                    let x = i * j;
+                    let y = i * k;
+                    let check = this.board.square(square.x + x, square.y + y);
 
-    // // Returns all squares with pieces that threaten the given square
-    // dangerousPieces(square, team, ignore, test) {
-    //     var result = [];
-    //     // Create a unit square
-    //     for (var j = -1; j <= 1; j++) {
-    //         for (var k = -1; k <= 1; k++) {
-    //             // Check for distant enemy pieces, and pawns
-    //             for (var i = 1; i <= 7; i++) {
-    //                 if (j == 0 && k == 0) continue;
-    //                 var x = i * j;
-    //                 var y = i * k;
-    //                 var check = this.board.square(square.x + x, square.y + y);
-    //                 if (!check) break;
-    //                 if (ignore && check.element === ignore.element) continue;
-    //                 if (check.team() == team) break;
-    //                 if (test && check.element === test.element) break;
-    //                 var piece = check.piece();
-    //                 if (piece == "") continue;
+                    // We've hit the end of the board
+                    if (!check) break;
 
-    //                 // Immediate surroundings
-    //                 if (Math.abs(x) <= 1 && Math.abs(y) <= 1) {
-    //                     // King
-    //                     if (piece == constants.pieceTypes.king) {
-    //                         result[result.length] = check;
-    //                     }
-    //                     // Pawn
-    //                     if (x != 0 && piece == constants.pieceTypes.pawn) {
-    //                         if (this.turnTeam == team && y == 1)
-    //                             result[result.length] = check;
-    //                         if (this.turnTeam != team && y == -1)
-    //                             result[result.length] = check;
-    //                     }
-    //                 }
-    //                 // Diagonal
-    //                 if (Math.abs(x) == Math.abs(y)) {
-    //                     // Bishop and Queen (diagonal)
-    //                     if (piece == constants.pieceTypes.bishop) {
-    //                         result[result.length] = check;
-    //                     }
-    //                 }
-    //                 // Vertical/Horizontal
-    //                 else {
-    //                     // Rook and Queen (vertical/horizontal)
-    //                     if (piece == constants.pieceTypes.rook) {
-    //                         result[result.length] = check;
-    //                     }
-    //                 }
-    //                 // Queen
-    //                 if (piece == constants.pieceTypes.queen) {
-    //                     result[result.length] = check;
-    //                 }
-    //                 if (piece != "") break; // Stop when blocked
-    //             }
-    //         }
-    //     }
-    //     // Check for enemy knights
-    //     for (var j = -1; j <= 1; j += 2) {
-    //         for (var k = -2; k <= 2; k += 4) {
-    //             for (var i = 0; i <= 1; i++) {
-    //                 var x = (i == 0) ? j : k;
-    //                 var y = (i == 0) ? k : j;
-    //                 var check = this.board.square(square.x + x, square.y + y);
-    //                 if (!check) continue;
-    //                 if (check.team() == team) continue;
-    //                 if (check.piece() == constants.pieceTypes.knight) {
-    //                     result[result.length] = check;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return (result.length != 0) ? result : null;
-    // }
+                    // Ignore the given square, if it exists
+                    if (ignore && check === ignore) continue;
+
+                    // We've hit a friendly piece
+                    if (check.resident.team == team) break;
+
+                    // We've hit our hypothetical friendly piece
+                    if (test && check === test) break;
+
+                    // Empty square
+                    if (!check.occupied) continue;
+
+                    let type = check.resident.type;
+
+                    // Immediate surroundings
+                    if (Math.abs(x) <= 1 && Math.abs(y) <= 1) {
+                        // King
+                        if (type == constants.pieceTypes.king) {
+                            result.push(check);
+                        }
+                        // Pawn
+                        if (x != 0 && type == constants.pieceTypes.pawn) {
+                            if (this.turnTeam == team && y == 1) {
+                                result.push(check);
+                            }
+                            if (this.turnTeam != team && y == -1) {
+                                result.push(check);
+                            }
+                        }
+                    }
+                    // Diagonal
+                    if (Math.abs(x) == Math.abs(y)) {
+                        // Bishop and Queen (diagonal)
+                        if (type == constants.pieceTypes.bishop) {
+                            result.push(check);
+                        }
+                    }
+                    // Vertical/Horizontal
+                    else {
+                        // Rook and Queen (vertical/horizontal)
+                        if (type == constants.pieceTypes.rook) {
+                            result.push(check);
+                        }
+                    }
+                    // Queen
+                    if (type == constants.pieceTypes.queen) {
+                        result.push(check);
+                    }
+
+                    // Blocked somehow; don't continue
+                    break;
+                }
+            }
+        }
+        // Check for enemy knights
+        for (let j = -1; j <= 1; j += 2) {
+            for (let k = -2; k <= 2; k += 4) {
+                for (let i = 0; i <= 1; i++) {
+                    // Look man, IDK what I did here, but it works...
+                    let x = (i == 0) ? j : k;
+                    let y = (i == 0) ? k : j;
+                    let check = this.board.square(square.x + x, square.y + y);
+
+                    // Square is off the edge of the board
+                    if (!check) continue;
+
+                    // Square is empty; carry on
+                    if (!check.occupied) continue;
+
+                    // We hit a friendly piece
+                    if (check.resident.team == team) continue;
+
+                    if (check.resident.type == constants.pieceTypes.knight) {
+                        result.push(check);
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * Clear the status of every square on the board, then update the view
