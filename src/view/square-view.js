@@ -60,7 +60,22 @@ export class SquareView extends Object {
         if (this.square.occupied) {
             this.resident(this.square.resident.name);
         }
-        // TODO: Convert square status to decoration
+
+        this.decorated(!this.square.clear);
+        if (!this.square.clear) {
+            if (this.square.open) {
+                this.decoration(constants.decorationNames.open);
+            }
+            else if (this.square.takeable) {
+                this.decoration(constants.decorationNames.takeable);
+            }
+            else if (this.square.recent) {
+                this.decoration(constants.decorationNames.recent);
+            }
+            else if (this.square.active) {
+                this.decoration(constants.decorationNames.active);
+            }
+        }
     }
 
     /**
