@@ -1,12 +1,13 @@
+// TODO: Maybe move constants into src/ instead of view/
 // TODO: Clean up constants as much as possible
 
 const delimiter = "-";
 const decorationPrefix = "board-square";
-const piecePrefixes = {
+const pieceTeams = {
     "black": "black",
     "white": "white"
 };
-const pieceSuffixes = {
+const pieceTypes = {
     "king": "king",
     "queen": "queen",
     "pawn": "pawn",
@@ -27,20 +28,20 @@ export const constants = {
         "takeable": decorationPrefix + delimiter + "takeable",
         "recent": decorationPrefix + delimiter + "recent"
     },
-    "piecePrefixes": piecePrefixes,
-    "pieceSuffixes": pieceSuffixes,
+    "pieceTeams": pieceTeams,
+    "pieceTypes": pieceTypes,
     "pieceNames": {
-        "blackKing": piecePrefixes.black + delimiter + pieceSuffixes.king,
-        "blackQueen": piecePrefixes.black + delimiter + pieceSuffixes.queen,
-        "blackPawn": piecePrefixes.black + delimiter + pieceSuffixes.pawn,
-        "blackRook": piecePrefixes.black + delimiter + pieceSuffixes.rook,
-        "blackBishop": piecePrefixes.black + delimiter + pieceSuffixes.bishop,
-        "blackKnight": piecePrefixes.black + delimiter + pieceSuffixes.knight,
-        "whiteKing": piecePrefixes.white + delimiter + pieceSuffixes.king,
-        "whiteQueen": piecePrefixes.white + delimiter + pieceSuffixes.queen,
-        "whitePawn": piecePrefixes.white + delimiter + pieceSuffixes.pawn,
-        "whiteRook": piecePrefixes.white + delimiter + pieceSuffixes.rook,
-        "whiteBishop": piecePrefixes.white + delimiter + pieceSuffixes.bishop,
-        "whiteKnight": piecePrefixes.white + delimiter + pieceSuffixes.knight
+        "blackKing": pieceTeams.black + delimiter + pieceTypes.king,
+        "blackQueen": pieceTeams.black + delimiter + pieceTypes.queen,
+        "blackPawn": pieceTeams.black + delimiter + pieceTypes.pawn,
+        "blackRook": pieceTeams.black + delimiter + pieceTypes.rook,
+        "blackBishop": pieceTeams.black + delimiter + pieceTypes.bishop,
+        "blackKnight": pieceTeams.black + delimiter + pieceTypes.knight,
+        "whiteKing": pieceTeams.white + delimiter + pieceTypes.king,
+        "whiteQueen": pieceTeams.white + delimiter + pieceTypes.queen,
+        "whitePawn": pieceTeams.white + delimiter + pieceTypes.pawn,
+        "whiteRook": pieceTeams.white + delimiter + pieceTypes.rook,
+        "whiteBishop": pieceTeams.white + delimiter + pieceTypes.bishop,
+        "whiteKnight": pieceTeams.white + delimiter + pieceTypes.knight
     }
 };
