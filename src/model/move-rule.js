@@ -38,30 +38,15 @@ export class ListRule extends MoveRule {
     get rules() { return this._rules; }
 }
 
-export class DirectionalRule extends MoveRule {
-    /**
-     * @param {RelativeMove} direction
-     * @param {Number} [extent]
-     */
-    constructor(direction, extent) {
-        super();
-        this._direction = direction;
-
-        // Default to 8
-        this._extent = (extent) ? extent : 8;
-    }
-
-    get direction() { return this._direction; }
-    get extent() { return this._extent; }
-}
+/**
+ * This callback returns a boolean representing
+ * whether an arbitrary condition has been met.
+ * @callback ConditionCallback
+ * @param {AbsoluteMove} [move]
+ * @returns {Boolean}
+ */
 
 export class ConditionalRule extends MoveRule {
-    /**
-     * This callback returns a boolean representing
-     * whether an arbitrary condition has been met.
-     * @callback ConditionCallback
-     * @returns {Boolean}
-     */
 
     /**
      *
@@ -75,5 +60,30 @@ export class ConditionalRule extends MoveRule {
     }
 
     get rule() { return this._rule; }
-    get isMet() { return this._condition(); }
+
+    /**
+     *
+     * @param {AbsoluteMove} [move]
+     */
+    isMet(move) { return this._condition(move); }
+}
+
+export class DirectionalRule extends MoveRule {
+    /**
+     * @param {RelativeMove} direction
+     * @param {ConditionCallback} [condition] An optional condition to check for each possible move
+     * @param {Number} [extent]
+     */
+    constructor(direction, condition, extent) {
+        super();
+        this._direction = direction;
+        this._condition = condition;
+
+        // Default to 8
+        this._extent = (extent) ? extent : 8;
+    }
+
+    get direction() { return this._direction; }
+    get condition() { return this._condition; }
+    get extent() { return this._extent; }
 }

@@ -1,7 +1,7 @@
 import { GameController } from './game';
 import { constants } from '../view/constants';
 import { Board } from '../model/board';
-import { Piece } from '../model/piece';
+import { Piece, Bishop } from '../model/piece';
 
 import $ from 'jquery';
 
@@ -13,6 +13,8 @@ export function setupGameWhenReady() {
     });
 }
 
+// TODO: Move wipeDecorations into Board class
+// TODO: Adapt to use status getter/setter methods instead of decoration()
 export function wipeDecorations(chessBoard, except) {
     chessBoard.iterate(function (sq) {
         if (except) {
@@ -26,12 +28,12 @@ export function wipeDecorations(chessBoard, except) {
     });
 }
 
-// TODO: Move this into GameController class?
 /**
  *
  * @param {Board} chessBoard
  * @param {String} turn
  */
+// TODO: Move setupChess into GameController class
 export function setupChess(chessBoard, turn) {
     if (turn != "white" && turn != "black") return;
 
