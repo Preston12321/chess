@@ -66,7 +66,7 @@ export class GameController extends Object {
             // TODO: Change check to a simple `square.active`?
             if (square === this.activeSquare) {
                 this.activeSquare = null;
-                util.wipeDecorations(this.board);
+                this.clearStatuses();
                 return;
             }
 
@@ -77,7 +77,7 @@ export class GameController extends Object {
 
                 this.recentLocation[this.turnTeam] = square;
                 square.recent = true;
-                util.wipeDecorations(this.board, square);
+                this.clearStatuses(square);
 
                 let piece = this.activeSquare.resident;
 
@@ -149,8 +149,8 @@ export class GameController extends Object {
 
                 let self = this;
                 setTimeout(() => {
-                    self.chessBoard.flip();
-                    util.wipeDecorations(self.chessBoard);
+                    self.board.flip();
+                    this.clearStatuses();
                     self.moveLocked = false;
                     self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
                         ? constants.pieceTeams.black : constants.pieceTeams.white;
@@ -169,7 +169,7 @@ export class GameController extends Object {
         if (!square.occupied || team != this.turnTeam) return;
 
         if (shouldWipe) {
-            util.wipeDecorations(this.board, this.recentLocation[team]);
+            this.clearStatuses(this.recentLocation[team]);
         }
 
         this.activeSquare = square;
@@ -414,4 +414,16 @@ export class GameController extends Object {
     //     return (result.length != 0) ? result : null;
     // }
 
+    /**
+     * Clear the status of every square on the board, then update the view
+     * @param {Square} [except] An optional square that will retain its status
+     */
+    clearStatuses(except) {
+        this.board.iterate(sq => {
+            if (except && sq.x == except.x && sq.y == except.y) return;
+
+            sq.clear = true;
+        });
+        this.view.update();
+    }
 }

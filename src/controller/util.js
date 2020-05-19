@@ -13,21 +13,6 @@ export function setupGameWhenReady() {
     });
 }
 
-// TODO: Move wipeDecorations into Board class
-// TODO: Adapt to use status getter/setter methods instead of decoration()
-export function wipeDecorations(chessBoard, except) {
-    chessBoard.iterate(function (sq) {
-        if (except) {
-            if (sq.x() != except.x() || sq.y() != except.y()) {
-                sq.decoration("");
-            }
-        }
-        else {
-            sq.decoration("");
-        }
-    });
-}
-
 /**
  *
  * @param {Board} chessBoard
@@ -42,6 +27,8 @@ export function setupChess(chessBoard, turn) {
 
     const pieces = ["rook", "knight", "bishop", "queen", "king",
         "bishop", "knight", "rook"];
+
+    chessBoard.square(2, 2).resident = new Bishop("white", move => true);
 
     for (var x = 0; x < 8; x++) {
         chessBoard.square(x, 0).resident = new Piece(first, pieces[x], null);
