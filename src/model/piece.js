@@ -49,6 +49,75 @@ export class Bishop extends Piece {
     }
 }
 
+export class Rook extends Piece {
+    /**
+     * @param {String} team
+     * @param {ConditionCallback} moveCondition
+     */
+    constructor(team, moveCondition) {
+        super(
+            team,
+            constants.pieceTypes.rook,
+            new ListRule([
+                new DirectionalRule(new RelativeMove(0, 1), moveCondition),
+                new DirectionalRule(new RelativeMove(1, 0), moveCondition),
+                new DirectionalRule(new RelativeMove(0, -1), moveCondition),
+                new DirectionalRule(new RelativeMove(-1, 0), moveCondition)
+            ])
+        );
+    }
+}
+
+export class Queen extends Piece {
+    /**
+     * @param {String} team
+     * @param {ConditionCallback} moveCondition
+     */
+    constructor(team, moveCondition) {
+        super(
+            team,
+            constants.pieceTypes.queen,
+            new ListRule([
+                // Horizontal/Vertical
+                new DirectionalRule(new RelativeMove(0, 1), moveCondition),
+                new DirectionalRule(new RelativeMove(1, 0), moveCondition),
+                new DirectionalRule(new RelativeMove(0, -1), moveCondition),
+                new DirectionalRule(new RelativeMove(-1, 0), moveCondition),
+                // Diagonal
+                new DirectionalRule(new RelativeMove(1, 1), moveCondition),
+                new DirectionalRule(new RelativeMove(1, -1), moveCondition),
+                new DirectionalRule(new RelativeMove(-1, -1), moveCondition),
+                new DirectionalRule(new RelativeMove(-1, 1), moveCondition)
+            ])
+        );
+    }
+}
+
+export class Knight extends Piece {
+    /**
+     * @param {String} team
+     * @param {ConditionCallback} moveCondition
+     */
+    constructor(team, moveCondition) {
+        super(
+            team,
+            constants.pieceTypes.knight,
+            new ListRule([
+                // Horizontal/Vertical
+                new ConditionalRule(new RelativeRule(new RelativeMove(1, 2)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(2, 1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(2, -1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(1, -2)), moveCondition),
+                // Diagonal
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, -2)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-2, -1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-2, 1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, 2)), moveCondition)
+            ])
+        );
+    }
+}
+
 // TODO: Implement Pawn enPassant
 export class Pawn extends Piece {
     /**
@@ -97,7 +166,26 @@ export class Pawn extends Piece {
     }
 }
 
-// TODO: Implement Rook
-// TODO: Implement Queen
-// TODO: Implement Knight
-// TODO: Implement King
+// TODO: Finish King implementation
+export class King extends Piece {
+    /**
+     * @param {String} team
+     * @param {ConditionCallback} moveCondition
+     */
+    constructor(team, moveCondition) {
+        super(
+            team,
+            constants.pieceTypes.king,
+            new ListRule([
+                new ConditionalRule(new RelativeRule(new RelativeMove(0, 1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(1, 1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(1, 0)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(1, -1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(0, -1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, -1)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, 0)), moveCondition),
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, 1)), moveCondition)
+            ])
+        );
+    }
+}

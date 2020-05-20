@@ -200,23 +200,23 @@ export class DirectionalRule extends MoveRule {
             // If square doesn't exist, we've hit the edge of the board
             if (!to) break;
 
+            let satisfied = this.condition && !this.condition(from, to);
             let move = new AbsoluteMove(to.x, to.y);
 
-            if (this.condition && !this.condition(from, to)) continue;
+            if (to.occupied) {
+                // Square is non-empty; add move if it's an enemy piece
+                if (satisfied && to.resident.team != piece.team) {
+                    moves.push(move);
+                }
 
-            // Add all empty squares
-            if (!to.occupied) {
-                moves.push(move);
-                continue;
+                // Some piece blocks path; don't continue
+                break;
             }
 
-            // Square is non-empty; add move if it's an enemy piece
-            if (to.resident.team != piece.team) {
+            if (satisfied) {
+                // Add all empty squares that satisfy the condition
                 moves.push(move);
             }
-
-            // Some piece blocks path; don't continue
-            break;
         }
 
         return moves;

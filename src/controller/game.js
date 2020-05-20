@@ -3,7 +3,7 @@ import { constants } from '../view/constants';
 import { BoardView } from '../view/board-view';
 import { Board } from '../model/board';
 import { Square } from '../model/square';
-import { Piece, Pawn, Bishop } from '../model/piece';
+import { Piece, Pawn, Bishop, Rook, Knight, Queen, King } from '../model/piece';
 import { MoveRule, AbsoluteRule, RelativeRule, ListRule, DirectionalRule, ConditionalRule, ConditionCallback } from '../model/move-rule';
 import { Move, RelativeMove, AbsoluteMove } from '../model/move';
 
@@ -206,7 +206,6 @@ export class GameController extends Object {
         this.view.update();
     }
 
-    // TODO: Convert availableMoves logic into MoveRule objects
     /**
      * Return a list of Square objects representing
      * all the valid moves for a given piece
@@ -229,7 +228,7 @@ export class GameController extends Object {
     }
 
     /**
-     * @returns Whether the current player has achieved checkmate against the other
+     * @returns {boolean} Whether the current player has achieved checkmate against the other
      */
     isCheckmate() {
         let enemyTeam = (this.turnTeam == constants.pieceTeams.white)
@@ -237,7 +236,7 @@ export class GameController extends Object {
             : constants.pieceTeams.white;
 
         let kingThreats = this.dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
-        if (kingThreats == null) return false;
+        if (kingThreats.length == 0) return false;
 
         return this.isStalemate();
     }
@@ -253,7 +252,7 @@ export class GameController extends Object {
             if (!sq.occupied || sq.resident.team == team) return;
 
             let moves = this.availableMoves(sq.resident);
-            if (moves.length == 0) {
+            if (moves.length != 0) {
                 result = false;
             }
         });
@@ -423,14 +422,28 @@ export class GameController extends Object {
             return true;
         };
 
-        this.board.square(2, 2).resident = new Bishop("white", condition);
+        this.board.square(0, 0).resident = new Rook("white", condition);
+        this.board.square(1, 0).resident = new Knight("white", condition);
+        this.board.square(2, 0).resident = new Bishop("white", condition);
+        this.board.square(3, 0).resident = new Queen("white", condition);
+        this.board.square(4, 0).resident = new King("white", condition);
+        this.board.square(5, 0).resident = new Bishop("white", condition);
+        this.board.square(6, 0).resident = new Knight("white", condition);
+        this.board.square(7, 0).resident = new Rook("white", condition);
+
+
+        this.board.square(0, 7).resident = new Rook("black", condition);
+        this.board.square(1, 7).resident = new Knight("black", condition);
+        this.board.square(2, 7).resident = new Bishop("black", condition);
+        this.board.square(3, 7).resident = new Queen("black", condition);
+        this.board.square(4, 7).resident = new King("black", condition);
+        this.board.square(5, 7).resident = new Bishop("black", condition);
+        this.board.square(6, 7).resident = new Knight("black", condition);
+        this.board.square(7, 7).resident = new Rook("black", condition);
 
         for (var x = 0; x < 8; x++) {
-            this.board.square(x, 0).resident = new Piece(first, pieces[x], new MoveRule());
             this.board.square(x, 1).resident = new Pawn(first, condition);
-
             this.board.square(x, 6).resident = new Pawn(second, condition);
-            this.board.square(x, 7).resident = new Piece(second, pieces[x], new MoveRule());
         }
     }
 }
