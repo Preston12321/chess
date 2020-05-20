@@ -61,10 +61,22 @@ export class Pawn extends Piece {
             team,
             constants.pieceTypes.pawn,
             new ListRule([
-                new ConditionalRule(new RelativeRule(new RelativeMove(0, y)), moveCondition),
-                new ConditionalRule(new RelativeRule(new RelativeMove(0, y * 2)), move => moveCondition(move) && !this._moved),
-                new ConditionalRule(new RelativeRule(new RelativeMove(1, y)), moveCondition),
-                new ConditionalRule(new RelativeRule(new RelativeMove(-1, y)), moveCondition)
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(0, y)),
+                    (from, to) => moveCondition(from, to) && !to.occupied
+                ),
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(0, y * 2)),
+                    (from, to) => moveCondition(from, to) && !this._moved && !to.occupied && !from.board.square(from.x, from.y + y).occupied
+                ),
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(1, y)),
+                    (from, to) => to.occupied && to.resident.team != team && moveCondition(from, to)
+                ),
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(-1, y)),
+                    (from, to) => to.occupied && to.resident.team != team && moveCondition(from, to)
+                )
             ])
         );
 

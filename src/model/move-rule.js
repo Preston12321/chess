@@ -103,7 +103,8 @@ export class ListRule extends MoveRule {
  * This callback returns a boolean representing
  * whether an arbitrary condition has been met.
  * @callback ConditionCallback
- * @param {AbsoluteMove} [move]
+ * @param {Square} [from]
+ * @param {Square} [to]
  * @returns {Boolean}
  */
 
@@ -123,10 +124,10 @@ export class ConditionalRule extends MoveRule {
     get rule() { return this._rule; }
 
     /**
-     *
-     * @param {AbsoluteMove} [move]
+     * @param {Square} [from]
+     * @param {Square} [to]
      */
-    isMet(move) { return this._condition(move); }
+    isMet(from, to) { return this._condition(from, to); }
 
     /**
      * Expand this rule into a list of valid moves for the given Piece
@@ -136,19 +137,21 @@ export class ConditionalRule extends MoveRule {
      */
     toMoves(piece) {
         /** @type {Array<AbsoluteMove>} */
-        let moves = [];
+        let moves = this.rule.toMoves(piece);
 
-        let sq = piece.square;
-        let rule = this.rule;
-        let move = rule.move;
+        let board = piece.square.board;
+        let passed = true;
+        let self = this;
+        moves.forEach(rule => {
+            let to = board.square(rule.x, rule.y);
+            if (!to) return;
 
-        if (rule instanceof RelativeRule) {
-            move = new AbsoluteMove(rule.move.x + sq.x, rule.move.y + sq.y);
-        }
+            if (!self.isMet(piece.square, to)) {
+                passed = false;
+            }
+        });
 
-        if (this.isMet(move)) {
-            moves = moves.concat(rule.toMoves(piece));
-        }
+        if (!passed) return [];
 
         return moves;
     }
@@ -183,7 +186,8 @@ export class DirectionalRule extends MoveRule {
         /** @type {Array<AbsoluteMove>} */
         let moves = [];
 
-        let board = piece.square.board;
+        let from = piece.square;
+        let board = from.board;
 
         let dir = this.direction;
         // Look in steps along a direction defined by the rule
@@ -191,23 +195,23 @@ export class DirectionalRule extends MoveRule {
             // Get square relative to the given piece
             let x = dir.x * i;
             let y = dir.y * i;
-            let square = board.square(piece.square.x + x, piece.square.y + y);
+            let to = board.square(from.x + x, from.y + y);
 
             // If square doesn't exist, we've hit the edge of the board
-            if (!square) break;
+            if (!to) break;
 
-            let move = new AbsoluteMove(square.x, square.y);
+            let move = new AbsoluteMove(to.x, to.y);
 
-            if (!this.condition(move)) continue;
+            if (this.condition && !this.condition(from, to)) continue;
 
             // Add all empty squares
-            if (!square.occupied) {
+            if (!to.occupied) {
                 moves.push(move);
                 continue;
             }
 
             // Square is non-empty; add move if it's an enemy piece
-            if (square.resident.team != piece.team) {
+            if (to.resident.team != piece.team) {
                 moves.push(move);
             }
 

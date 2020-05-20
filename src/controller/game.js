@@ -166,15 +166,11 @@ export class GameController extends Object {
             }
         }
 
-        // No active square, let's see if this square has a piece with valid moves
-
-        let team = square.resident.team;
-
-        // Show moves if square is occupied by a player on their own turn
-        if (!square.occupied || team != this.turnTeam) return;
+        // No active square; show moves if square is occupied by a player on their own turn
+        if (!square.occupied || square.resident.team != this.turnTeam) return;
 
         if (shouldWipe) {
-            this.clearStatuses(this.recentLocation[team]);
+            this.clearStatuses(this.recentLocation[square.resident.team]);
         }
 
         this.activeSquare = square;
@@ -414,19 +410,17 @@ export class GameController extends Object {
 
         let self = this;
         /** @type {ConditionCallback} */
-        let condition = (move) => {
-            let square = self.board.square(move.x, move.y);
-            let dangers = self.endangersKing(self.activeSquare, square);
-
-            if (!square) return false;
+        let condition = (from, to) => {
+            console.log(to);
+            let dangers = self.endangersKing(from, to);
 
             if (dangers.length != 0) return false;
 
-            if (!square.occupied) return true;
+            if (!to.occupied) return true;
 
-            if (square.resident.team == self.turnTeam) return false;
+            if (to.resident.team == from.resident.team) return false;
 
-            return false;
+            return true;
         };
 
         this.board.square(2, 2).resident = new Bishop("white", condition);
