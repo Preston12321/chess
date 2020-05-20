@@ -100,11 +100,11 @@ export class ListRule extends MoveRule {
 }
 
 /**
- * This callback returns a boolean representing
- * whether an arbitrary condition has been met.
+ * Returns a boolean representing whether an arbitrary condition
+ * has been met. Both arguments are guaranteed to be non-null
  * @callback ConditionCallback
- * @param {Square} [from]
- * @param {Square} [to]
+ * @param {Square} from
+ * @param {Square} to
  * @returns {Boolean}
  */
 
@@ -124,8 +124,8 @@ export class ConditionalRule extends MoveRule {
     get rule() { return this._rule; }
 
     /**
-     * @param {Square} [from]
-     * @param {Square} [to]
+     * @param {Square} from
+     * @param {Square} to
      */
     isMet(from, to) { return this._condition(from, to); }
 
