@@ -1,12 +1,15 @@
 import { Piece } from "./piece";
+import { Board } from "./board";
 
 export class Square extends Object {
     /**
+     * @param {Board} board
      * @param {Number} x
      * @param {Number} y
      */
-    constructor(x, y) {
+    constructor(board, x, y) {
         super();
+        this._board = board;
         this._x = x;
         this._y = y;
 
@@ -21,6 +24,7 @@ export class Square extends Object {
         this.status = "";
     }
 
+    get board() { return this._board; }
     get x() { return this._x; }
     get y() { return this._y; }
 

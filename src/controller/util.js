@@ -12,29 +12,3 @@ export function setupGameWhenReady() {
         window.game.view.bindToElement($("#" + constants.chessBoard).get(0));
     });
 }
-
-/**
- *
- * @param {Board} chessBoard
- * @param {String} turn
- */
-// TODO: Move setupChess into GameController class
-export function setupChess(chessBoard, turn) {
-    if (turn != "white" && turn != "black") return;
-
-    const first = turn;
-    const second = (turn == "white") ? "black" : "white";
-
-    const pieces = ["rook", "knight", "bishop", "queen", "king",
-        "bishop", "knight", "rook"];
-
-    chessBoard.square(2, 2).resident = new Bishop("white", move => true);
-
-    for (var x = 0; x < 8; x++) {
-        chessBoard.square(x, 0).resident = new Piece(first, pieces[x], null);
-        chessBoard.square(x, 1).resident = new Piece(first, "pawn", null);
-
-        chessBoard.square(x, 6).resident = new Piece(second, "pawn", null);
-        chessBoard.square(x, 7).resident = new Piece(second, pieces[x], null);
-    }
-}

@@ -3,8 +3,8 @@ import { constants } from '../view/constants';
 import { BoardView } from '../view/board-view';
 import { Board } from '../model/board';
 import { Square } from '../model/square';
-import { Piece } from '../model/piece';
-import { MoveRule, AbsoluteRule, RelativeRule, ListRule, DirectionalRule, ConditionalRule } from '../model/move-rule';
+import { Piece, Pawn, Bishop } from '../model/piece';
+import { MoveRule, AbsoluteRule, RelativeRule, ListRule, DirectionalRule, ConditionalRule, ConditionCallback } from '../model/move-rule';
 import { Move, RelativeMove, AbsoluteMove } from '../model/move';
 
 // TODO: Optimize, optimize, optimize!
@@ -29,7 +29,7 @@ export class GameController extends Object {
         // TODO: Move canCastle into king-specific Piece class?
         this.canCastle = { "white": true, "black": true };
 
-        util.setupChess(this.board, "white");
+        this.setupChess();
         this.view.update();
 
         this.view.onSquareClick(square => this.squareClick(square));
@@ -40,7 +40,6 @@ export class GameController extends Object {
      * @param {Square} square
      */
     squareClick(square) {
-        console.log(square);
 
         // NOTE: Changing parameter `event` to `square`
 
@@ -152,7 +151,7 @@ export class GameController extends Object {
 
                 let self = this;
                 setTimeout(() => {
-                    self.board.flip();
+                    self.view.flip();
                     this.clearStatuses();
 
                     self.moveLocked = false;
@@ -180,6 +179,8 @@ export class GameController extends Object {
 
         this.activeSquare = square;
         square.active = true;
+
+        this.view.update();
 
         let moves = this.availableMoves(square.resident);
 
@@ -209,91 +210,6 @@ export class GameController extends Object {
         this.view.update();
     }
 
-    /**
-     * Expand a given MoveRule into a list of valid moves for the given Piece
-     * @param {MoveRule} rule
-     * @param {Piece} piece
-     * @returns {Array<AbsoluteMove>}
-     */
-    ruleToMoves(rule, piece) {
-        /** @type {Array<AbsoluteMove>} */
-        let moves = [];
-        console.log(rule);
-
-        if (rule instanceof AbsoluteRule) {
-            moves.push(rule.move);
-        }
-
-        else if (rule instanceof RelativeRule) {
-            let sq = piece.square;
-            let absolute = new AbsoluteMove(sq.x + rule.move.x, sq.y + rule.move.y);
-            moves.push(absolute);
-        }
-
-
-        else if (rule instanceof ListRule) {
-            rule.rules.forEach(r => {
-                moves = moves.concat(this.ruleToMoves(r, piece));
-            });
-        }
-
-        else if (rule instanceof DirectionalRule) {
-            console.log("Processing directional rule");
-            let dir = rule.direction;
-            // Look in steps along a direction defined by the rule
-            for (let i = 1; i <= rule.extent; i++) {
-                // Get square relative to the given piece
-                let x = dir.x * i;
-                let y = dir.y * i;
-                let square = this.board.square(piece.square.x + x, piece.square.y + y);
-
-                console.log(square);
-
-                // If square doesn't exist, we've hit the edge of the board
-                if (!square) break;
-
-                let move = new AbsoluteMove(square.x, square.y);
-
-                if (!rule.condition(move)) continue;
-
-                // Add all empty squares
-                if (!square.occupied) {
-                    console.log("Adding move (" + move.x + ", " + move.y + ")");
-                    moves.push(move);
-                    continue;
-                }
-
-                // Square is non-empty; add move if it's an enemy piece
-                if (square.resident.team != piece.team) {
-                    console.log("Adding move (" + move.x + ", " + move.y + ")");
-                    moves.push(move);
-                }
-
-                // Some piece blocks path; don't continue
-                break;
-            }
-        }
-
-        else if (rule instanceof ConditionalRule) {
-            let move;
-
-            let sq = piece.square;
-            let r = rule.rule;
-            if (r instanceof RelativeRule) {
-                move = new AbsoluteMove(r.move.x + sq.x, r.move.y + sq.y);
-            }
-            else if (r instanceof AbsoluteRule) {
-                move = r.move;
-            }
-
-            if (rule.isMet(move)) {
-                moves.concat(this.ruleToMoves(r, piece));
-            }
-        }
-
-        return moves;
-    }
-
     // TODO: Convert availableMoves logic into MoveRule objects
     /**
      * Return a list of Square objects representing
@@ -302,12 +218,16 @@ export class GameController extends Object {
      * @returns {Array<Square>}
      */
     availableMoves(piece) {
-        let moves = this.ruleToMoves(piece.moveRule, piece);
+        let moves = piece.moveRule.toMoves(piece);
 
         let result = [];
-        moves.forEach(move => result.push(this.board.square(move.x, move.y)));
-
-        console.log(result);
+        let self = this;
+        moves.forEach(move => {
+            let square = self.board.square(move.x, move.y);
+            if (square) {
+                result.push(square);
+            }
+        });
 
         return result;
     }
@@ -330,15 +250,16 @@ export class GameController extends Object {
      * @returns {boolean} Whether the game has reached a state of draw by stalemate
      */
     isStalemate() {
-        let enemyTeam = (this.turnTeam == constants.pieceTeams.white)
-            ? constants.pieceTeams.black
-            : constants.pieceTeams.white;
+        let team = this.turnTeam;
 
         let result = true;
         this.board.iterate(sq => {
-            let moves = (sq.occupied && sq.resident.team == enemyTeam) ? this.availableMoves(sq.resident) : null;
-            if (moves) result = false;
-            return;
+            if (!sq.occupied || sq.resident.team == team) return;
+
+            let moves = this.availableMoves(sq.resident);
+            if (moves.length == 0) {
+                result = false;
+            }
         });
 
         return result;
@@ -352,7 +273,7 @@ export class GameController extends Object {
      */
     endangersKing(origin, test) {
         let team = origin.resident.team;
-        return dangerousPieces(this.kingLocation[team], team, origin, test);
+        return this.dangerousPieces(this.kingLocation[team], team, origin, test);
     }
 
     /**
@@ -380,16 +301,22 @@ export class GameController extends Object {
                     if (!check) break;
 
                     // Ignore the given square, if it exists
-                    if (ignore && check === ignore) continue;
-
-                    // We've hit a friendly piece
-                    if (check.resident.team == team) break;
+                    if (ignore && check.x == ignore.x && check.y == ignore.y) {
+                        continue;
+                    }
 
                     // We've hit our hypothetical friendly piece
-                    if (test && check === test) break;
+                    if (test && check.x === test.x && check.y === test.y) {
+                        break;
+                    }
 
                     // Empty square
                     if (!check.occupied) continue;
+
+                    // We've hit a friendly piece
+                    if (check.resident.team == team) {
+                        break;
+                    }
 
                     let type = check.resident.type;
 
@@ -471,5 +398,45 @@ export class GameController extends Object {
             sq.clear = true;
         });
         this.view.update();
+    }
+
+    /**
+     *
+     * @param {Board} chessBoard
+     * @param {String} turn
+     */
+    setupChess() {
+        const first = constants.pieceTeams.white;
+        const second = constants.pieceTeams.black;
+
+        const pieces = ["rook", "knight", "bishop", "queen", "king",
+            "bishop", "knight", "rook"];
+
+        let self = this;
+        /** @type {ConditionCallback} */
+        let condition = (move) => {
+            let square = self.board.square(move.x, move.y);
+            let dangers = self.endangersKing(self.activeSquare, square);
+
+            if (!square) return false;
+
+            if (dangers.length != 0) return false;
+
+            if (!square.occupied) return true;
+
+            if (square.resident.team == self.turnTeam) return false;
+
+            return false;
+        };
+
+        this.board.square(2, 2).resident = new Bishop("white", condition);
+
+        for (var x = 0; x < 8; x++) {
+            this.board.square(x, 0).resident = new Piece(first, pieces[x], new MoveRule());
+            this.board.square(x, 1).resident = new Pawn(first, condition);
+
+            this.board.square(x, 6).resident = new Pawn(second, condition);
+            this.board.square(x, 7).resident = new Piece(second, pieces[x], new MoveRule());
+        }
     }
 }
