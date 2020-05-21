@@ -13,9 +13,13 @@ import BlackPawn from './view/style/pieces/BlackPawn.png';
 
 import './view/style/style.scss';
 
-import { setupGameWhenReady } from './controller/util';
+import $ from 'jquery';
 
-setupGameWhenReady();
+$(() => {
+    window.game = new GameController();
+    window.game.view.bindToElement($("#" + constants.chessBoard).get(0));
+});
 
 // TODO: Add README and LICENSE files
 // TODO: Add unit tests and CI pipeline
+// TODO: Maybe trade dependency on JQuery for modern DOM features with polyfills
