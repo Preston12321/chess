@@ -396,54 +396,51 @@ export class GameController extends Object {
     }
 
     /**
-     *
-     * @param {Board} chessBoard
-     * @param {String} turn
+     * Set up the board with pieces for a standard game of chess
      */
     setupChess() {
-        const first = constants.pieceTeams.white;
-        const second = constants.pieceTeams.black;
-
-        const pieces = ["rook", "knight", "bishop", "queen", "king",
-            "bishop", "knight", "rook"];
+        const white = constants.pieceTeams.white;
+        const black = constants.pieceTeams.black;
 
         let self = this;
         /** @type {ConditionCallback} */
         let condition = (from, to) => {
             console.log(to);
+            // Make sure the move wouldn't endanger the king
             let dangers = self.endangersKing(from, to);
-
             if (dangers.length != 0) return false;
 
+            // If not, and if square is empty, we can move there
             if (!to.occupied) return true;
 
+            // If square is occupied by friendly piece, we can't
             if (to.resident.team == from.resident.team) return false;
 
+            // Square must have enemy piece we can take
             return true;
         };
 
-        this.board.square(0, 0).resident = new Rook("white", condition);
-        this.board.square(1, 0).resident = new Knight("white", condition);
-        this.board.square(2, 0).resident = new Bishop("white", condition);
-        this.board.square(3, 0).resident = new Queen("white", condition);
-        this.board.square(4, 0).resident = new King("white", condition);
-        this.board.square(5, 0).resident = new Bishop("white", condition);
-        this.board.square(6, 0).resident = new Knight("white", condition);
-        this.board.square(7, 0).resident = new Rook("white", condition);
+        this.board.square(0, 0).resident = new Rook(white, condition);
+        this.board.square(1, 0).resident = new Knight(white, condition);
+        this.board.square(2, 0).resident = new Bishop(white, condition);
+        this.board.square(3, 0).resident = new Queen(white, condition);
+        this.board.square(4, 0).resident = new King(white, condition);
+        this.board.square(5, 0).resident = new Bishop(white, condition);
+        this.board.square(6, 0).resident = new Knight(white, condition);
+        this.board.square(7, 0).resident = new Rook(white, condition);
 
+        this.board.square(0, 7).resident = new Rook(black, condition);
+        this.board.square(1, 7).resident = new Knight(black, condition);
+        this.board.square(2, 7).resident = new Bishop(black, condition);
+        this.board.square(3, 7).resident = new Queen(black, condition);
+        this.board.square(4, 7).resident = new King(black, condition);
+        this.board.square(5, 7).resident = new Bishop(black, condition);
+        this.board.square(6, 7).resident = new Knight(black, condition);
+        this.board.square(7, 7).resident = new Rook(black, condition);
 
-        this.board.square(0, 7).resident = new Rook("black", condition);
-        this.board.square(1, 7).resident = new Knight("black", condition);
-        this.board.square(2, 7).resident = new Bishop("black", condition);
-        this.board.square(3, 7).resident = new Queen("black", condition);
-        this.board.square(4, 7).resident = new King("black", condition);
-        this.board.square(5, 7).resident = new Bishop("black", condition);
-        this.board.square(6, 7).resident = new Knight("black", condition);
-        this.board.square(7, 7).resident = new Rook("black", condition);
-
-        for (var x = 0; x < 8; x++) {
-            this.board.square(x, 1).resident = new Pawn(first, condition);
-            this.board.square(x, 6).resident = new Pawn(second, condition);
+        for (let x = 0; x < 8; x++) {
+            this.board.square(x, 1).resident = new Pawn(white, condition);
+            this.board.square(x, 6).resident = new Pawn(black, condition);
         }
     }
 }
