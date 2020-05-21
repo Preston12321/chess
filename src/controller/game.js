@@ -1,5 +1,5 @@
 import * as util from './util';
-import { constants } from '../view/constants';
+import { constants } from '../constants';
 import { BoardView } from '../view/board-view';
 import { Board } from '../model/board';
 import { Square } from '../model/square';

@@ -1,5 +1,5 @@
 import { GameController } from './game';
-import { constants } from '../view/constants';
+import { constants } from '../constants';
 import { Board } from '../model/board';
 import { Piece, Bishop } from '../model/piece';
 

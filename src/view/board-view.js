@@ -1,4 +1,4 @@
-import { constants } from './constants';
+import { constants } from '../constants';
 import { Board } from '../model/board';
 import { Square } from '../model/square';
 import { SquareView } from './square-view';

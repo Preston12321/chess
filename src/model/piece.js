@@ -1,6 +1,6 @@
 import { MoveRule, ListRule, DirectionalRule, ConditionCallback, ConditionalRule, RelativeRule } from './move-rule';
 import { Square } from './square';
-import { constants } from '../view/constants';
+import { constants } from '../constants';
 import { RelativeMove } from './move';
 
 export class Piece extends Object {
