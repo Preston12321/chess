@@ -1,4 +1,3 @@
-// TODO: Maybe move constants into src/ instead of view/
 // TODO: Clean up constants as much as possible
 
 const delimiter = "-";

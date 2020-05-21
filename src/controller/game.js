@@ -1,11 +1,9 @@
-import * as util from './util';
 import { constants } from '../constants';
 import { BoardView } from '../view/board-view';
 import { Board } from '../model/board';
 import { Square } from '../model/square';
 import { Piece, Pawn, Bishop, Rook, Knight, Queen, King } from '../model/piece';
-import { MoveRule, AbsoluteRule, RelativeRule, ListRule, DirectionalRule, ConditionalRule, ConditionCallback } from '../model/move-rule';
-import { Move, RelativeMove, AbsoluteMove } from '../model/move';
+import { ConditionCallback } from '../model/move-rule';
 
 // TODO: Optimize, optimize, optimize!
 // TODO: Add detection for draw by three-fold repetition

@@ -1,7 +1,6 @@
 import { RelativeMove, AbsoluteMove } from './move';
 import { Piece } from './piece';
 import { Square } from './square';
-import { Board } from './board';
 
 export class MoveRule extends Object {
     /**
