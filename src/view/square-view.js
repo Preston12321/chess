@@ -27,12 +27,10 @@ export class SquareView extends Object {
         /** @type {clickCallback} */
         this._callback = null;
 
-        let self = this;
+        const self = this;
         this.element.on("click", () => {
-            let callback = self.clickCallback;
-
-            if (callback) {
-                callback(self.square);
+            if (self.clickCallback) {
+                self.clickCallback(self.square);
             }
         });
     }
@@ -96,7 +94,7 @@ export class SquareView extends Object {
      * @param {String} name
      */
     resident(name) {
-        let result = this.class(Object.values(constants.pieceNames), name);
+        const result = this.class(Object.values(constants.pieceNames), name);
 
         if (result == "") {
             this.element.removeClass(constants.occupied);
@@ -127,7 +125,7 @@ export class SquareView extends Object {
      * @param {String} name
      */
     decoration(name) {
-        let result = this.class(Object.values(constants.decorationNames), name);
+        const result = this.class(Object.values(constants.decorationNames), name);
 
         if (result == "") {
             this.element.removeClass(constants.decorated);

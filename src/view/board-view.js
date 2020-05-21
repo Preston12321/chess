@@ -35,7 +35,7 @@ export class BoardView extends Object {
             let e = $("<div></div>").addClass(constants.boardRow);
 
             for (let x = 0; x < board.squares[y].length; x++) {
-                let square = new SquareView(board.square(x, y));
+                const square = new SquareView(board.square(x, y));
                 row.push(square);
                 e.append(square.element);
             }
@@ -91,15 +91,15 @@ export class BoardView extends Object {
         let squares = [];
         this.squares.forEach(row => {
             row.forEach(square => {
-                let sq = square.square;
+                const sq = square.square;
                 squares[sq.x + sq.y * 8] = sq;
             });
         });
 
         this.squares.forEach(row => {
             row.forEach(square => {
-                let current = square.square;
-                let swap = squares[7 - current.y + current.x * 8];
+                const current = square.square;
+                const swap = squares[7 - current.y + current.x * 8];
                 square.square = swap;
             });
         });

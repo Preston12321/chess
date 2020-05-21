@@ -19,4 +19,3 @@ setupGameWhenReady();
 
 // TODO: Add README and LICENSE files
 // TODO: Add unit tests and CI pipeline
-// TODO: Convert var keywords to let where possible

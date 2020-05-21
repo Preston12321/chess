@@ -10,8 +10,7 @@ export class Board extends Object {
         for (let y = 0; y < 8; y++) {
             let row = [];
             for (let x = 0; x < 8; x++) {
-                let square = new Square(this, x, y);
-                row.push(square);
+                row.push(new Square(this, x, y));
             }
             this.squares.push(row);
         }

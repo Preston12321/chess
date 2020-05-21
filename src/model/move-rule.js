@@ -35,9 +35,8 @@ export class RelativeRule extends MoveRule {
         /** @type {Array<AbsoluteMove>} */
         let moves = [];
 
-        let sq = piece.square;
-        let absolute = new AbsoluteMove(sq.x + this.move.x, sq.y + this.move.y);
-        moves.push(absolute);
+        const sq = piece.square;
+        moves.push(new AbsoluteMove(sq.x + this.move.x, sq.y + this.move.y));
 
         return moves;
     }
@@ -61,12 +60,7 @@ export class AbsoluteRule extends MoveRule {
      * @returns {Array<AbsoluteMove>}
      */
     toMoves(piece) {
-        /** @type {Array<AbsoluteMove>} */
-        let moves = [];
-
-        moves.push(this.move);
-
-        return moves;
+        return [this.move];
     }
 }
 
@@ -137,13 +131,13 @@ export class ConditionalRule extends MoveRule {
      */
     toMoves(piece) {
         /** @type {Array<AbsoluteMove>} */
-        let moves = this.rule.toMoves(piece);
+        const moves = this.rule.toMoves(piece);
 
-        let board = piece.square.board;
+        const board = piece.square.board;
         let passed = true;
-        let self = this;
+        const self = this;
         moves.forEach(rule => {
-            let to = board.square(rule.x, rule.y);
+            const to = board.square(rule.x, rule.y);
             if (!to) return;
 
             if (!self.isMet(piece.square, to)) {
@@ -186,22 +180,22 @@ export class DirectionalRule extends MoveRule {
         /** @type {Array<AbsoluteMove>} */
         let moves = [];
 
-        let from = piece.square;
-        let board = from.board;
+        const from = piece.square;
+        const board = from.board;
 
-        let dir = this.direction;
+        const dir = this.direction;
         // Look in steps along a direction defined by the rule
         for (let i = 1; i <= this.extent; i++) {
             // Get square relative to the given piece
-            let x = dir.x * i;
-            let y = dir.y * i;
-            let to = board.square(from.x + x, from.y + y);
+            const x = dir.x * i;
+            const y = dir.y * i;
+            const to = board.square(from.x + x, from.y + y);
 
             // If square doesn't exist, we've hit the edge of the board
             if (!to) break;
 
-            let satisfied = this.condition && !this.condition(from, to);
-            let move = new AbsoluteMove(to.x, to.y);
+            const satisfied = this.condition && !this.condition(from, to);
+            const move = new AbsoluteMove(to.x, to.y);
 
             if (to.occupied) {
                 // Square is non-empty; add move if it's an enemy piece

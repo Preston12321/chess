@@ -125,7 +125,7 @@ export class Pawn extends Piece {
      * @param {ConditionCallback} moveCondition
      */
     constructor(team, moveCondition) {
-        let y = team == constants.pieceTeams.white ? 1 : -1;
+        const y = team == constants.pieceTeams.white ? 1 : -1;
         super(
             team,
             constants.pieceTypes.pawn,

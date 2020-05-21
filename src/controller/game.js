@@ -50,7 +50,7 @@ export class GameController extends Object {
             && this.kingLocation[constants.pieceTeams.black])) {
             // Search through board
             this.board.iterate((sq) => {
-                let piece = sq.resident;
+                const piece = sq.resident;
                 if (piece && piece.type == constants.pieceTypes.king) {
                     this.kingLocation[piece.team] = sq;
                 }
@@ -78,7 +78,7 @@ export class GameController extends Object {
                 square.recent = true;
                 this.clearStatuses(square);
 
-                let piece = this.activeSquare.resident;
+                const piece = this.activeSquare.resident;
 
                 this.enPassant = null;
 
@@ -125,7 +125,7 @@ export class GameController extends Object {
                         }
 
                         if (x1 && x2) {
-                            let rook = this.board.square(x1, 0);
+                            const rook = this.board.square(x1, 0);
                             this.board.square(x2, 0).resident = rook.resident;
                             rook.resident = null;
                         }
@@ -149,7 +149,7 @@ export class GameController extends Object {
                 this.kingLocation[constants.pieceTeams.white] = null;
                 this.kingLocation[constants.pieceTeams.black] = null;
 
-                let self = this;
+                const self = this;
                 setTimeout(() => {
                     self.view.flip();
                     this.clearStatuses();
@@ -178,7 +178,7 @@ export class GameController extends Object {
 
         this.view.update();
 
-        let moves = this.availableMoves(square.resident);
+        const moves = this.availableMoves(square.resident);
 
         if (!(moves && moves.length != 0)) return;
 
@@ -188,10 +188,9 @@ export class GameController extends Object {
                 return;
             }
 
-            let check = this.board.square(sq.x, sq.y - 1);
-            let enemyPawn = ((this.turnTeam == constants.pieceTeams.white)
-                ? constants.pieceTeams.black : constants.pieceTeams.white)
-                + "-" + constants.pieceTypes.pawn;
+            const check = this.board.square(sq.x, sq.y - 1);
+            const enemyPawn = (this.turnTeam == constants.pieceTeams.white)
+                ? constants.pieceNames.blackPawn : constants.pieceNames.whitePawn;
 
             if (sq.x == this.enPassant && sq.y == 5
                 && square.resident.type == constants.pieceTypes.pawn
@@ -213,12 +212,12 @@ export class GameController extends Object {
      * @returns {Array<Square>}
      */
     availableMoves(piece) {
-        let moves = piece.moveRule.toMoves(piece);
+        const moves = piece.moveRule.toMoves(piece);
 
         let result = [];
-        let self = this;
+        const self = this;
         moves.forEach(move => {
-            let square = self.board.square(move.x, move.y);
+            const square = self.board.square(move.x, move.y);
             if (square) {
                 result.push(square);
             }
@@ -231,11 +230,11 @@ export class GameController extends Object {
      * @returns {boolean} Whether the current player has achieved checkmate against the other
      */
     isCheckmate() {
-        let enemyTeam = (this.turnTeam == constants.pieceTeams.white)
+        const enemyTeam = (this.turnTeam == constants.pieceTeams.white)
             ? constants.pieceTeams.black
             : constants.pieceTeams.white;
 
-        let kingThreats = this.dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
+        const kingThreats = this.dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
         if (kingThreats.length == 0) return false;
 
         return this.isStalemate();
@@ -245,13 +244,13 @@ export class GameController extends Object {
      * @returns {boolean} Whether the game has reached a state of draw by stalemate
      */
     isStalemate() {
-        let team = this.turnTeam;
+        const team = this.turnTeam;
 
         let result = true;
         this.board.iterate(sq => {
             if (!sq.occupied || sq.resident.team == team) return;
 
-            let moves = this.availableMoves(sq.resident);
+            const moves = this.availableMoves(sq.resident);
             if (moves.length != 0) {
                 result = false;
             }
@@ -267,7 +266,7 @@ export class GameController extends Object {
      * @param {Square} test
      */
     endangersKing(origin, test) {
-        let team = origin.resident.team;
+        const team = origin.resident.team;
         return this.dangerousPieces(this.kingLocation[team], team, origin, test);
     }
 
@@ -288,9 +287,9 @@ export class GameController extends Object {
                 if (j == 0 && k == 0) continue;
                 // Check for distant enemy pieces, and pawns
                 for (let i = 1; i <= 7; i++) {
-                    let x = i * j;
-                    let y = i * k;
-                    let check = this.board.square(square.x + x, square.y + y);
+                    const x = i * j;
+                    const y = i * k;
+                    const check = this.board.square(square.x + x, square.y + y);
 
                     // We've hit the end of the board
                     if (!check) break;
@@ -313,7 +312,7 @@ export class GameController extends Object {
                         break;
                     }
 
-                    let type = check.resident.type;
+                    const type = check.resident.type;
 
                     // Immediate surroundings
                     if (Math.abs(x) <= 1 && Math.abs(y) <= 1) {
@@ -360,9 +359,9 @@ export class GameController extends Object {
             for (let k = -2; k <= 2; k += 4) {
                 for (let i = 0; i <= 1; i++) {
                     // Look man, IDK what I did here, but it works...
-                    let x = (i == 0) ? j : k;
-                    let y = (i == 0) ? k : j;
-                    let check = this.board.square(square.x + x, square.y + y);
+                    const x = (i == 0) ? j : k;
+                    const y = (i == 0) ? k : j;
+                    const check = this.board.square(square.x + x, square.y + y);
 
                     // Square is off the edge of the board
                     if (!check) continue;
@@ -402,12 +401,12 @@ export class GameController extends Object {
         const white = constants.pieceTeams.white;
         const black = constants.pieceTeams.black;
 
-        let self = this;
+        const self = this;
         /** @type {ConditionCallback} */
-        let condition = (from, to) => {
+        const condition = (from, to) => {
             console.log(to);
             // Make sure the move wouldn't endanger the king
-            let dangers = self.endangersKing(from, to);
+            const dangers = self.endangersKing(from, to);
             if (dangers.length != 0) return false;
 
             // If not, and if square is empty, we can move there
