@@ -193,7 +193,7 @@ export class DirectionalRule extends MoveRule {
             // If square doesn't exist, we've hit the edge of the board
             if (!to) break;
 
-            const satisfied = this.condition && !this.condition(from, to);
+            const satisfied = this.condition && this.condition(from, to);
             const move = new AbsoluteMove(to.x, to.y);
 
             if (to.occupied) {

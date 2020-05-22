@@ -13,11 +13,15 @@ import BlackPawn from './view/style/pieces/BlackPawn.png';
 
 import './view/style/style.scss';
 
+import { GameController } from './controller/game';
+import { constants } from './constants';
+
 import $ from 'jquery';
 
 $(() => {
-    window.game = new GameController();
-    window.game.view.bindToElement($("#" + constants.chessBoard).get(0));
+    const game = new GameController();
+    game.view.bindToElement($("#" + constants.chessBoard).get(0));
+    window.game = game;
 });
 
 // TODO: Add README and LICENSE files

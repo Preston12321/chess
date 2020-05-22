@@ -20,9 +20,13 @@ export class GameController extends Object {
         this.moveLocked = false;
         this.enPassant = null;
 
-        // TODO: Track the individual pieces instead of using kingLocation
-        this.kingLocation = { "white": null, "black": null };
-        this.recentLocation = { "white": null, "black": null };
+        this.kings = {};
+        this.kings[constants.pieceTeams.white] = null;
+        this.kings[constants.pieceTeams.black] = null;
+
+        this.recentSquares = {};
+        this.recentSquares[constants.pieceTeams.white] = null;
+        this.recentSquares[constants.pieceTeams.black] = null;
 
         // TODO: Move canCastle into king-specific Piece class?
         this.canCastle = { "white": true, "black": true };
@@ -39,21 +43,7 @@ export class GameController extends Object {
      */
     squareClick(square) {
 
-        // NOTE: Changing parameter `event` to `square`
-
         if (this.moveLocked) return;
-
-        // Find both kings and note their location if not already noted
-        if (!(this.kingLocation[constants.pieceTeams.white]
-            && this.kingLocation[constants.pieceTeams.black])) {
-            // Search through board
-            this.board.iterate((sq) => {
-                const piece = sq.resident;
-                if (piece && piece.type == constants.pieceTypes.king) {
-                    this.kingLocation[piece.team] = sq;
-                }
-            });
-        }
 
         let shouldWipe = false;
 
@@ -72,7 +62,7 @@ export class GameController extends Object {
             // If able to move this square, take necessary action
             if (square.open || square.takeable) {
 
-                this.recentLocation[this.turnTeam] = square;
+                this.recentSquares[this.turnTeam] = square;
                 square.recent = true;
                 this.clearStatuses(square);
 
@@ -82,6 +72,7 @@ export class GameController extends Object {
 
                 switch (piece.type) {
                     case constants.pieceTypes.pawn:
+                        // TODO: Fix en passant logic
                         if (square.y == 3) {
                             this.enPassant = 7 - square.x;
                         }
@@ -91,13 +82,14 @@ export class GameController extends Object {
                         break;
 
                     case constants.pieceTypes.rook:
-                        this.canCastle[this.activeSquare.team()] = false;
+                        this.canCastle[piece.team] = false;
                         break;
 
                     case constants.pieceTypes.king:
-                        if (!this.canCastle[this.activeSquare.team()]) break;
+                        if (!this.canCastle[piece.team]) break;
 
-                        this.canCastle[this.activeSquare.team()] = false;
+                        // TODO: Fix castle logic
+                        this.canCastle[piece.team] = false;
                         let x1 = null;
                         let x2 = null;
                         switch (square.x) {
@@ -144,9 +136,6 @@ export class GameController extends Object {
                     alert("Draw by stalemate!");
                 }
 
-                this.kingLocation[constants.pieceTeams.white] = null;
-                this.kingLocation[constants.pieceTeams.black] = null;
-
                 const self = this;
                 setTimeout(() => {
                     self.view.flip();
@@ -156,8 +145,8 @@ export class GameController extends Object {
                     self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
                         ? constants.pieceTeams.black : constants.pieceTeams.white;
 
-                    if (this.recentLocation[self.turnTeam]) {
-                        this.recentLocation[self.turnTeam].recent = true;
+                    if (this.recentSquares[self.turnTeam]) {
+                        this.recentSquares[self.turnTeam].recent = true;
                     }
                 }, 1000);
                 return;
@@ -168,7 +157,7 @@ export class GameController extends Object {
         if (!square.occupied || square.resident.team != this.turnTeam) return;
 
         if (shouldWipe) {
-            this.clearStatuses(this.recentLocation[square.resident.team]);
+            this.clearStatuses(this.recentSquares[square.resident.team]);
         }
 
         this.activeSquare = square;
@@ -178,7 +167,7 @@ export class GameController extends Object {
 
         const moves = this.availableMoves(square.resident);
 
-        if (!(moves && moves.length != 0)) return;
+        if (moves.length == 0) return;
 
         moves.forEach(sq => {
             if (sq.occupied) {
@@ -186,18 +175,9 @@ export class GameController extends Object {
                 return;
             }
 
-            const check = this.board.square(sq.x, sq.y - 1);
-            const enemyPawn = (this.turnTeam == constants.pieceTeams.white)
-                ? constants.pieceNames.blackPawn : constants.pieceNames.whitePawn;
+            // TODO: Check if move is an en passant
 
-            if (sq.x == this.enPassant && sq.y == 5
-                && square.resident.type == constants.pieceTypes.pawn
-                && check.resident.name == enemyPawn) {
-                sq.takeable = true;
-            }
-            else {
-                sq.open = true;
-            }
+            sq.open = true;
         });
 
         this.view.update();
@@ -232,7 +212,7 @@ export class GameController extends Object {
             ? constants.pieceTeams.black
             : constants.pieceTeams.white;
 
-        const kingThreats = this.dangerousPieces(this.kingLocation[enemyTeam], enemyTeam);
+        const kingThreats = this.dangerousPieces(this.kings[enemyTeam].square, enemyTeam);
         if (kingThreats.length == 0) return false;
 
         return this.isStalemate();
@@ -265,7 +245,7 @@ export class GameController extends Object {
      */
     endangersKing(origin, test) {
         const team = origin.resident.team;
-        return this.dangerousPieces(this.kingLocation[team], team, origin, test);
+        return this.dangerousPieces(this.kings[team].square, team, origin, test);
     }
 
     /**
@@ -439,5 +419,8 @@ export class GameController extends Object {
             this.board.square(x, 1).resident = new Pawn(white, condition);
             this.board.square(x, 6).resident = new Pawn(black, condition);
         }
+
+        this.kings[constants.pieceTeams.white] = this.board.square(4, 0).resident;
+        this.kings[constants.pieceTeams.black] = this.board.square(4, 7).resident;
     }
 }
