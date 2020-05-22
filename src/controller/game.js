@@ -28,9 +28,6 @@ export class GameController extends Object {
         this.recentSquares[constants.pieceTeams.white] = null;
         this.recentSquares[constants.pieceTeams.black] = null;
 
-        // TODO: Move canCastle into king-specific Piece class?
-        this.canCastle = { "white": true, "black": true };
-
         this.setupChess();
         this.view.update();
 
@@ -81,44 +78,16 @@ export class GameController extends Object {
                         }
                         break;
 
-                    case constants.pieceTypes.rook:
-                        this.canCastle[piece.team] = false;
-                        break;
-
                     case constants.pieceTypes.king:
-                        if (!this.canCastle[piece.team]) break;
+                        // Check if castle move
+                        const distance = square.x - this.activeSquare.x;
+                        if (Math.abs(distance) != 2) break;
 
-                        // TODO: Fix castle logic
-                        this.canCastle[piece.team] = false;
-                        let x1 = null;
-                        let x2 = null;
-                        switch (square.x) {
-                            case 2:
-                                x1 = 0;
-                                x2 = 3;
-                                break;
-
-                            case 1:
-                                x1 = 0;
-                                x2 = 2;
-                                break;
-
-                            case 6:
-                                x1 = 7;
-                                x2 = 5;
-                                break;
-
-                            case 5:
-                                x1 = 7;
-                                x2 = 4;
-                                break;
-                        }
-
-                        if (x1 && x2) {
-                            const rook = this.board.square(x1, 0);
-                            this.board.square(x2, 0).resident = rook.resident;
-                            rook.resident = null;
-                        }
+                        // Move rook to the other side of the king
+                        const x = square.x == 2 ? 0 : 7;
+                        const rook = this.board.square(x, this.activeSquare.y).resident;
+                        const to = this.board.square(this.activeSquare.x + (distance / 2), this.activeSquare.y);
+                        to.resident = rook;
                         break;
                 }
 
@@ -383,9 +352,23 @@ export class GameController extends Object {
         /** @type {ConditionCallback} */
         const condition = (from, to) => {
             console.log(to);
-            // Make sure the move wouldn't endanger the king
-            const dangers = self.endangersKing(from, to);
-            if (dangers.length != 0) return false;
+
+            if (from.resident.type == constants.pieceTypes.king) {
+                // Make sure king can't move to an attacked square
+                if (self.dangerousPieces(to, from.resident.team).length != 0) return false;
+
+                // If castle move, make sure intermediate square is also safe
+                const distance = to.x - from.x;
+                if (Math.abs(distance) == 2) {
+                    let between = self.board.square(from.x + (distance / 2), from.y);
+                    if (self.dangerousPieces(between, from.resident.team).length != 0) return false;
+                }
+            }
+            else {
+                // Make sure the move wouldn't endanger the king
+                const dangers = self.endangersKing(from, to);
+                if (dangers.length != 0) return false;
+            }
 
             // If not, and if square is empty, we can move there
             if (!to.occupied) return true;

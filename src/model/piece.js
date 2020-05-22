@@ -17,17 +17,25 @@ export class Piece extends Object {
 
         /** @type {Square} */
         this._square = null;
+
+        this._moved = false;
     }
 
     get team() { return this._team; }
     get type() { return this._type; }
     get moveRule() { return this._moveRule; }
     get square() { return this._square; }
+    get moved() { return this._moved; }
 
     // TODO: Fix this use of a hard-coded literal
     get name() { return this.team + "-" + this.type; }
 
-    set square(square) { this._square = square; }
+    set square(square) {
+        if (this.square) {
+            this._moved = true;
+        }
+        this._square = square;
+    }
 }
 
 export class Bishop extends Piece {
@@ -136,7 +144,7 @@ export class Pawn extends Piece {
                 ),
                 new ConditionalRule(
                     new RelativeRule(new RelativeMove(0, y * 2)),
-                    (from, to) => moveCondition(from, to) && !this._moved && !to.occupied && !from.board.square(from.x, from.y + y).occupied
+                    (from, to) => moveCondition(from, to) && !this.moved && !to.occupied && !from.board.square(from.x, from.y + y).occupied
                 ),
                 new ConditionalRule(
                     new RelativeRule(new RelativeMove(1, y)),
@@ -148,25 +156,9 @@ export class Pawn extends Piece {
                 )
             ])
         );
-
-        this._moved = false;
-    }
-
-    get square() { return this._square; }
-
-    /**
-     * @override
-     * @param {Square} square
-    */
-    set square(square) {
-        if (this.square) {
-            this._moved = true;
-        }
-        this._square = square;
     }
 }
 
-// TODO: Finish King implementation
 export class King extends Piece {
     /**
      * @param {String} team
@@ -177,6 +169,7 @@ export class King extends Piece {
             team,
             constants.pieceTypes.king,
             new ListRule([
+                // Immediately-surrounding squares
                 new ConditionalRule(new RelativeRule(new RelativeMove(0, 1)), moveCondition),
                 new ConditionalRule(new RelativeRule(new RelativeMove(1, 1)), moveCondition),
                 new ConditionalRule(new RelativeRule(new RelativeMove(1, 0)), moveCondition),
@@ -184,7 +177,30 @@ export class King extends Piece {
                 new ConditionalRule(new RelativeRule(new RelativeMove(0, -1)), moveCondition),
                 new ConditionalRule(new RelativeRule(new RelativeMove(-1, -1)), moveCondition),
                 new ConditionalRule(new RelativeRule(new RelativeMove(-1, 0)), moveCondition),
-                new ConditionalRule(new RelativeRule(new RelativeMove(-1, 1)), moveCondition)
+                new ConditionalRule(new RelativeRule(new RelativeMove(-1, 1)), moveCondition),
+                // Castle squares
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(2, 0)),
+                    (from, to) =>
+                        moveCondition(from, to) &&
+                        // Make sure the piece hasn't moved
+                        !this.moved &&
+                        // Make sure the corresponding rook hasn't moved
+                        // NOTE: We assume here the pieces were set up for a typical game
+                        this.square.board.square(from.x + 3, from.y).occupied &&
+                        !this.square.board.square(from.x + 3, from.y).resident.moved
+                ),
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(-2, 0)),
+                    (from, to) =>
+                        moveCondition(from, to) &&
+                        // Make sure the piece hasn't moved
+                        !this.moved &&
+                        // Make sure the corresponding rook hasn't moved
+                        // NOTE: We assume here the pieces were set up for a typical game
+                        this.square.board.square(from.x - 4, from.y).occupied &&
+                        !this.square.board.square(from.x - 4, from.y).resident.moved
+                )
             ])
         );
     }
