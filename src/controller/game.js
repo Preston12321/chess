@@ -50,7 +50,9 @@ export class GameController extends Object {
             // TODO: Change check to a simple `square.active`?
             if (square === this.activeSquare) {
                 this.activeSquare = null;
-                this.clearStatuses();
+                const recent = this.recentSquares[this.turnTeam];
+                recent.recent = true;
+                this.clearStatuses(recent);
                 return;
             }
 
@@ -97,6 +99,7 @@ export class GameController extends Object {
                 square.resident = this.activeSquare.resident;
                 this.activeSquare = null;
 
+                // Update recent square
                 this.recentSquares[this.turnTeam] = square;
                 square.recent = true;
                 this.clearStatuses(square);
@@ -120,8 +123,9 @@ export class GameController extends Object {
                     self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
                         ? constants.pieceTeams.black : constants.pieceTeams.white;
 
-                    if (this.recentSquares[self.turnTeam]) {
-                        this.recentSquares[self.turnTeam].recent = true;
+                    if (self.recentSquares[self.turnTeam]) {
+                        self.recentSquares[self.turnTeam].recent = true;
+                        self.view.update();
                     }
                 }, 1000);
                 return;
