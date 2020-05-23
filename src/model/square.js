@@ -20,8 +20,6 @@ export class Square extends Object {
         this._takeable = false;
         this._open = false;
         this._recent = false;
-
-        this.status = "";
     }
 
     get board() { return this._board; }
@@ -125,11 +123,6 @@ export class Square extends Object {
 
             // Set reference to this square in new resident
             resident.square = this;
-        }
-
-        if (this._resident) {
-            // Remove reference to this square from old resident
-            this._resident.square = null;
         }
 
         // Take ownership of new resident

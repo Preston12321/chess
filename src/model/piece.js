@@ -126,36 +126,91 @@ export class Knight extends Piece {
     }
 }
 
-// TODO: Implement Pawn enPassant
 export class Pawn extends Piece {
     /**
      * @param {String} team
      * @param {ConditionCallback} moveCondition
      */
     constructor(team, moveCondition) {
-        const y = team == constants.pieceTeams.white ? 1 : -1;
+        const forward = (team == constants.pieceTeams.white) ? 1 : -1;
         super(
             team,
             constants.pieceTypes.pawn,
             new ListRule([
+                // Immediately ahead
                 new ConditionalRule(
-                    new RelativeRule(new RelativeMove(0, y)),
-                    (from, to) => moveCondition(from, to) && !to.occupied
+                    new RelativeRule(new RelativeMove(0, forward)),
+                    (from, to) =>
+                        moveCondition(from, to) &&
+                        !to.occupied
+                ),
+                // Two squares forward
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(0, forward * 2)),
+                    (from, to) =>
+                        moveCondition(from, to) &&
+                        !this.moved &&
+                        !to.occupied &&
+                        !from.board.square(from.x, from.y + forward).occupied
+                ),
+                // Taking diagonally/en passant
+                new ConditionalRule(
+                    new RelativeRule(new RelativeMove(1, forward)),
+                    (from, to) =>
+                        moveCondition(from, to) && (
+                            to.occupied || (
+                                from.board.square(from.x + 1, from.y).occupied &&
+                                from.board.square(from.x + 1, from.y).resident.team != team &&
+                                from.board.square(from.x + 1, from.y).resident.type == constants.pieceTypes.pawn &&
+                                from.board.square(from.x + 1, from.y).resident.enPassant
+                            )
+                        )
                 ),
                 new ConditionalRule(
-                    new RelativeRule(new RelativeMove(0, y * 2)),
-                    (from, to) => moveCondition(from, to) && !this.moved && !to.occupied && !from.board.square(from.x, from.y + y).occupied
-                ),
-                new ConditionalRule(
-                    new RelativeRule(new RelativeMove(1, y)),
-                    (from, to) => to.occupied && to.resident.team != team && moveCondition(from, to)
-                ),
-                new ConditionalRule(
-                    new RelativeRule(new RelativeMove(-1, y)),
-                    (from, to) => to.occupied && to.resident.team != team && moveCondition(from, to)
+                    new RelativeRule(new RelativeMove(-1, forward)),
+                    (from, to) =>
+                        moveCondition(from, to) && (
+                            to.occupied || (
+                                from.board.square(from.x - 1, from.y).occupied &&
+                                from.board.square(from.x - 1, from.y).resident.team != team &&
+                                from.board.square(from.x - 1, from.y).resident.type == constants.pieceTypes.pawn &&
+                                from.board.square(from.x - 1, from.y).resident.enPassant
+                            )
+                        )
                 )
             ])
         );
+
+        /** @type {Square} */
+        this._square = null;
+
+        this._enPassant = false;
+    }
+
+    get square() { return this._square; }
+    get enPassant() { return this._enPassant; }
+
+    set square(square) {
+        if (this.square) {
+            this._moved = true;
+
+            const forward = (this.team == constants.pieceTeams.white) ? 1 : -1;
+
+            // If piece moves forward by two squares, set enPassant status
+            if (square && square.y == (this.square.y + forward * 2)) {
+                this._enPassant = true;
+            }
+            else {
+                this._enPassant = false;
+            }
+        }
+        this._square = square;
+    }
+
+    set enPassant(enPassant) {
+        if (!enPassant) {
+            this._enPassant = false;
+        }
     }
 }
 

@@ -58,24 +58,18 @@ export class GameController extends Object {
 
             // If able to move this square, take necessary action
             if (square.open || square.takeable) {
-
-                this.recentSquares[this.turnTeam] = square;
-                square.recent = true;
-                this.clearStatuses(square);
-
                 const piece = this.activeSquare.resident;
 
                 this.enPassant = null;
 
                 switch (piece.type) {
                     case constants.pieceTypes.pawn:
-                        // TODO: Fix en passant logic
-                        if (square.y == 3) {
-                            this.enPassant = 7 - square.x;
-                        }
-                        if (this.activeSquare.y == 4) {
-                            this.board.square(square.x, square.y - 1).resident = null;
-                        }
+                        if (square.occupied) break;
+
+                        if (square.x - this.activeSquare.x == 0) break;
+
+                        this.board.square(square.x, this.activeSquare.y).resident = null;
+
                         break;
 
                     case constants.pieceTypes.king:
@@ -91,11 +85,23 @@ export class GameController extends Object {
                         break;
                 }
 
+                /** @type {Square} */
+                let recent = this.recentSquares[this.turnTeam];
+
+                // If last move involved a pawn, make sure the pawn's enPassant status is false
+                if (recent && recent.resident.type == constants.pieceTypes.pawn) {
+                    recent.resident.enPassant = false;
+                }
+
                 // Move piece to the clicked square
                 square.resident = this.activeSquare.resident;
                 this.activeSquare = null;
 
-                this.view.update();
+                this.recentSquares[this.turnTeam] = square;
+                square.recent = true;
+                this.clearStatuses(square);
+
+                // this.view.update();
 
                 this.moveLocked = true;
                 if (this.isCheckmate()) {
@@ -138,15 +144,21 @@ export class GameController extends Object {
 
         if (moves.length == 0) return;
 
-        moves.forEach(sq => {
-            if (sq.occupied) {
-                sq.takeable = true;
+        const piece = this.activeSquare.resident;
+
+        moves.forEach(to => {
+            if (to.occupied) {
+                to.takeable = true;
                 return;
             }
 
-            // TODO: Check if move is an en passant
+            // If move is an en passant, show square as takeable
+            if (piece.type == constants.pieceTypes.pawn && Math.abs(to.x - this.activeSquare.x) == 1) {
+                to.takeable = true;
+                return;
+            }
 
-            sq.open = true;
+            to.open = true;
         });
 
         this.view.update();
@@ -351,8 +363,6 @@ export class GameController extends Object {
         const self = this;
         /** @type {ConditionCallback} */
         const condition = (from, to) => {
-            console.log(to);
-
             if (from.resident.type == constants.pieceTypes.king) {
                 // Make sure king can't move to an attacked square
                 if (self.dangerousPieces(to, from.resident.team).length != 0) return false;
