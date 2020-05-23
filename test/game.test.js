@@ -8,12 +8,11 @@ test("GameController is created properly", () => {
     $("body").append("<div id='" + boardId + "'></div>");
 
     let game = new GameController(boardId);
-    expect(game).toHaveProperty("chessBoard");
+    expect(game).toHaveProperty("board");
+    expect(game).toHaveProperty("view");
     expect(game).toHaveProperty("activeSquare");
     expect(game).toHaveProperty("turnTeam");
     expect(game).toHaveProperty("moveLocked");
-    expect(game).toHaveProperty("kingLocation");
-    expect(game).toHaveProperty("recentLocation");
-    expect(game).toHaveProperty("canCastle");
-    expect(game).toHaveProperty("enPassant");
+    expect(game).toHaveProperty("kings");
+    expect(game).toHaveProperty("recentSquares");
 });
