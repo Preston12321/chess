@@ -24,6 +24,5 @@ $(() => {
     window.game = game;
 });
 
-// TODO: Add README and LICENSE files
 // TODO: Add unit tests and CI pipeline
 // TODO: Maybe trade dependency on JQuery for modern DOM features with polyfills

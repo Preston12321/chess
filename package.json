@@ -9,7 +9,7 @@
     "test": "jest"
   },
   "author": "Preston Locke",
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "https://github.com/Preston12321/chess.git"
