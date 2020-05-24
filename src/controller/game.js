@@ -18,7 +18,6 @@ export class GameController extends Object {
         this.activeSquare = null;
         this.turnTeam = constants.pieceTeams.white;
         this.moveLocked = false;
-        this.enPassant = null;
 
         this.kings = {};
         this.kings[constants.pieceTeams.white] = null;
@@ -62,17 +61,64 @@ export class GameController extends Object {
             if (square.open || square.takeable) {
                 const piece = this.activeSquare.resident;
 
-                this.enPassant = null;
-
                 switch (piece.type) {
                     case constants.pieceTypes.pawn:
-                        if (square.occupied) break;
+                        if (square.y == 7 || square.y == 0) {
+                            const self = this;
+                            this.view.showChooser(
+                                piece.team,
+                                (choice) => {
+                                    /** @type {Square} */
+                                    let recent = self.recentSquares[self.turnTeam];
 
-                        if (square.x - this.activeSquare.x == 0) break;
+                                    // If last move involved a pawn, make sure the pawn's enPassant status is false
+                                    if (recent && recent.resident.type == constants.pieceTypes.pawn) {
+                                        recent.resident.enPassant = false;
+                                    }
+
+                                    /** @type {Piece} */
+                                    let promotion = null;
+                                    switch (choice) {
+                                        case constants.pieceTypes.queen:
+                                            promotion = new Queen(piece.team, self.moveIsValid);
+                                            break;
+
+                                        case constants.pieceTypes.knight:
+                                            promotion = new Knight(piece.team, self.moveIsValid);
+                                            break;
+
+                                        case constants.pieceTypes.bishop:
+                                            promotion = new Bishop(piece.team, self.moveIsValid);
+                                            break;
+
+                                        case constants.pieceTypes.rook:
+                                            promotion = new Rook(piece.team, self.moveIsValid);
+                                            break;
+                                    }
+
+                                    // Place promoted piece and remove pawn
+                                    square.resident = promotion;
+                                    self.activeSquare.resident = null;
+                                    self.activeSquare = null;
+
+                                    // Update recent square
+                                    self.recentSquares[self.turnTeam] = square;
+                                    square.recent = true;
+                                    self.clearStatuses(square);
+
+                                    self.finishTurn();
+                                }
+                            );
+
+                            return;
+                        }
+
+                        if (square.occupied || square.x - this.activeSquare.x == 0) break;
 
                         this.board.square(square.x, this.activeSquare.y).resident = null;
 
                         break;
+
 
                     case constants.pieceTypes.king:
                         // Check if castle move
@@ -104,30 +150,8 @@ export class GameController extends Object {
                 square.recent = true;
                 this.clearStatuses(square);
 
-                // this.view.update();
+                this.finishTurn();
 
-                this.moveLocked = true;
-                if (this.isCheckmate()) {
-                    alert(this.turnTeam + " won!");
-                }
-                else if (this.isStalemate()) {
-                    alert("Draw by stalemate!");
-                }
-
-                const self = this;
-                setTimeout(() => {
-                    self.view.flip();
-                    this.clearStatuses();
-
-                    self.moveLocked = false;
-                    self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
-                        ? constants.pieceTeams.black : constants.pieceTeams.white;
-
-                    if (self.recentSquares[self.turnTeam]) {
-                        self.recentSquares[self.turnTeam].recent = true;
-                        self.view.update();
-                    }
-                }, 1000);
                 return;
             }
         }
@@ -187,6 +211,34 @@ export class GameController extends Object {
         });
 
         return result;
+    }
+
+    finishTurn() {
+        this.moveLocked = true;
+        if (this.isCheckmate()) {
+            alert(this.turnTeam + " won!");
+        }
+        else if (this.isStalemate()) {
+            alert("Draw by stalemate!");
+        }
+
+        const self = this;
+        setTimeout(
+            () => {
+                self.view.flip();
+                this.clearStatuses();
+
+                self.moveLocked = false;
+                self.turnTeam = (self.turnTeam == constants.pieceTeams.white)
+                    ? constants.pieceTeams.black : constants.pieceTeams.white;
+
+                if (self.recentSquares[self.turnTeam]) {
+                    self.recentSquares[self.turnTeam].recent = true;
+                    self.view.update();
+                }
+            },
+            1000
+        );
     }
 
     /**
