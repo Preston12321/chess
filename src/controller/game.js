@@ -76,23 +76,25 @@ export class GameController extends Object {
                                         recent.resident.enPassant = false;
                                     }
 
+                                    const condition = (from, to) => self.moveIsValid(from, to);
+
                                     /** @type {Piece} */
                                     let promotion = null;
                                     switch (choice) {
                                         case constants.pieceTypes.queen:
-                                            promotion = new Queen(piece.team, self.moveIsValid);
+                                            promotion = new Queen(piece.team, condition);
                                             break;
 
                                         case constants.pieceTypes.knight:
-                                            promotion = new Knight(piece.team, self.moveIsValid);
+                                            promotion = new Knight(piece.team, condition);
                                             break;
 
                                         case constants.pieceTypes.bishop:
-                                            promotion = new Bishop(piece.team, self.moveIsValid);
+                                            promotion = new Bishop(piece.team, condition);
                                             break;
 
                                         case constants.pieceTypes.rook:
-                                            promotion = new Rook(piece.team, self.moveIsValid);
+                                            promotion = new Rook(piece.team, condition);
                                             break;
                                     }
 
@@ -211,6 +213,40 @@ export class GameController extends Object {
         });
 
         return result;
+    }
+
+    /**
+     * Return whether a move from one square to
+     * another should be a valid one
+     * @param {Square} from
+     * @param {Square} to
+     */
+    moveIsValid(from, to) {
+        if (from.resident.type == constants.pieceTypes.king) {
+            // Make sure king can't move to an attacked square
+            if (this.dangerousPieces(to, from.resident.team).length != 0) return false;
+
+            // If castle move, make sure intermediate square is also safe
+            const distance = to.x - from.x;
+            if (Math.abs(distance) == 2) {
+                let between = this.board.square(from.x + (distance / 2), from.y);
+                if (this.dangerousPieces(between, from.resident.team).length != 0) return false;
+            }
+        }
+        else {
+            // Make sure the move wouldn't endanger the king
+            const dangers = this.endangersKing(from, to);
+            if (dangers.length != 0) return false;
+        }
+
+        // If not, and if square is empty, we can move there
+        if (!to.occupied) return true;
+
+        // If square is occupied by friendly piece, we can't
+        if (to.resident.team == from.resident.team) return false;
+
+        // Square must have enemy piece we can take
+        return true;
     }
 
     finishTurn() {
@@ -416,35 +452,8 @@ export class GameController extends Object {
         const white = constants.pieceTeams.white;
         const black = constants.pieceTeams.black;
 
-        const self = this;
         /** @type {ConditionCallback} */
-        const condition = (from, to) => {
-            if (from.resident.type == constants.pieceTypes.king) {
-                // Make sure king can't move to an attacked square
-                if (self.dangerousPieces(to, from.resident.team).length != 0) return false;
-
-                // If castle move, make sure intermediate square is also safe
-                const distance = to.x - from.x;
-                if (Math.abs(distance) == 2) {
-                    let between = self.board.square(from.x + (distance / 2), from.y);
-                    if (self.dangerousPieces(between, from.resident.team).length != 0) return false;
-                }
-            }
-            else {
-                // Make sure the move wouldn't endanger the king
-                const dangers = self.endangersKing(from, to);
-                if (dangers.length != 0) return false;
-            }
-
-            // If not, and if square is empty, we can move there
-            if (!to.occupied) return true;
-
-            // If square is occupied by friendly piece, we can't
-            if (to.resident.team == from.resident.team) return false;
-
-            // Square must have enemy piece we can take
-            return true;
-        };
+        const condition = (from, to) => this.moveIsValid(from, to);
 
         this.board.square(0, 0).resident = new Rook(white, condition);
         this.board.square(1, 0).resident = new Knight(white, condition);
