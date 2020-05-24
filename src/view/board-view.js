@@ -13,6 +13,8 @@ export class BoardView extends Object {
     constructor(board, element) {
         super();
 
+        /** @type {JQuery<HTMLElement>} */
+        this.element = null;
         if (element) {
             this.element = $(element);
         }
@@ -20,11 +22,14 @@ export class BoardView extends Object {
             this.element = $("<div></div>");
         }
 
-        this.board = board;
-
         if (!this.element.hasClass(constants.chessBoard)) {
             this.element.addClass(constants.chessBoard);
         }
+
+        /** @type {JQuery<HTMLElement>} */
+        this.overlayElement = null;
+
+        this.board = board;
 
         /** @type {Array<Array<SquareView>>} */
         this.squares = [];
@@ -116,4 +121,119 @@ export class BoardView extends Object {
         this.turnClockwise(2);
         this.update();
     }
+
+    /**
+     * Called whenever a modal dialog is cancelled
+     * @callback CancelCallback
+     */
+    /**
+     * Show a modal dialog with the given content,
+     * executing `onCancel` if the dialog is dismissed.
+     * @param {HTMLElement|JQuery<HTMLElement>} [child] The content of the modal
+     * @param {CancelCallback} [onCancel] Called if the dialog is dismissed
+     */
+    showModal(child, onCancel) {
+        // If a modal already exists, do nothing
+        if (this.overlayElement) return false;
+
+        // Create overlay to darken the screen
+        this.overlayElement = $("<div></div>").addClass("shade-overlay").hide();;
+
+        // Hide overlay and modal when player clicks outside of modal
+        const self = this;
+        this.overlayElement.on("click", () => {
+            self.hideModal();
+
+            if (onCancel) {
+                onCancel();
+            }
+        });
+
+        // Create modal element and add the given contents
+        let modal = $("<div></div>").addClass("modal-chooser");
+
+        if (child) {
+            modal.append(child);
+        }
+
+        // Make sure clicking in the modal doesn't trigger overlay click listener
+        modal.on("click", (event) => { event.stopPropagation(); });
+
+        // Add modal to the overlay then the overlay to the end of the document body
+        this.overlayElement.append(modal);
+
+        $("body").append(this.overlayElement);
+        this.overlayElement.fadeIn();
+
+        return true;
+    }
+
+    /**
+     * If a modal dialog is currently being shown, hide it
+     */
+    hideModal() {
+        // If no modal exists, do nothing
+        if (!this.overlayElement) return false;
+
+        // Fade out modal, then remove it from the DOM
+        let overlay = this.overlayElement;
+        overlay.fadeOut({
+            complete: () => {
+                overlay.remove();
+            }
+        });
+
+        this.overlayElement = null;
+        return true;
+    }
+
+    /**
+     * Called when a choice is selected from
+     * chooser modal dialog
+     * @callback SelectionCallback
+     * @param {String} choice
+     */
+    /**
+     * Show a modal dialog with options for pawn promotion
+     * @param {String} team The team for which to show the options
+     * @param {SelectionCallback} onSelect The callback to execute if an option is selected
+     * @param {CancelCallback} [onCancel] The callback to execute if the dialog is dismissed
+     */
+    showChooser(team, onSelect, onCancel) {
+        if (this.overlayElement) return false;
+
+        // Make the four choices
+        let queen = $("<div></div>").addClass("choice").addClass(team + "-" + constants.pieceTypes.queen);
+        let knight = $("<div></div>").addClass("choice").addClass(team + "-" + constants.pieceTypes.knight);
+        let bishop = $("<div></div>").addClass("choice").addClass(team + "-" + constants.pieceTypes.bishop);
+        let rook = $("<div></div>").addClass("choice").addClass(team + "-" + constants.pieceTypes.rook);
+
+        // Call selection callback and hide modal if a choice is clicked
+        const self = this;
+        queen.on("click", () => { onSelect(constants.pieceTypes.queen); self.hideModal(); });
+        knight.on("click", () => { onSelect(constants.pieceTypes.knight); self.hideModal(); });
+        bishop.on("click", () => { onSelect(constants.pieceTypes.bishop); self.hideModal(); });
+        rook.on("click", () => { onSelect(constants.pieceTypes.rook); self.hideModal(); });
+
+        // Add choices along with header and description to modal body
+        let dist = $("<div></div>").addClass(["distribute", "flex-even"]);
+        dist.append([queen, knight, bishop, rook]);
+
+        let message = $("<h2>Promote Pawn</h2>").addClass(["centered-padding", "chooser-header"]);
+
+        let head = $("<div></div>").addClass("flex-even");
+        head.append(message);
+
+        let description = $("<p></p>").addClass(["centered-padding", "chooser-description"]);
+        description.text("Choose a piece to promote your pawn to. Or click outside this window to cancel your move.");
+
+        let foot = $("<div></div>").addClass("flex-even");
+        foot.append(description);
+
+        let content = $("<div></div>").addClass("chooser-content");
+        content.append([head, dist, foot]);
+
+        return this.showModal(content, onCancel);
+    }
+
 }
